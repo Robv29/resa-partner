@@ -1,10 +1,11 @@
-import { TriangleAlert, CheckCheck, CarFront } from "lucide-react";
+import { TriangleAlert, CheckCheck, CarFront, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR } from "@/lib/format";
 import { scheduleBooking, markDone, cancelBooking, addBookingOption } from "./actions";
 import { panelClass, inputClass, buttonClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
+import AdminNewBookingForm from "./AdminNewBookingForm";
 
 export default async function AdminBookingsPage({
   searchParams,
@@ -24,46 +25,90 @@ export default async function AdminBookingsPage({
 
   if (status !== "all") query = query.eq("status", status);
 
-  const [{ data: bookings }, { data: siteOptions }] = await Promise.all([
+  const [
+    { data: bookings },
+    { data: siteOptions },
+    { data: sites },
+    { count: pendingCount },
+    { count: scheduledCount },
+    { count: doneCount },
+    { count: allCount },
+  ] = await Promise.all([
     query,
     supabase
       .from("site_options")
-      .select("site_id, option_id, price, option:options(name)")
+      .select("id, site_id, option_id, price, option:options(id, name, is_base)")
       .eq("active", true),
+    supabase.from("sites").select("id, name").eq("active", true).order("name"),
+    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "pending"),
+    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "scheduled"),
+    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "done"),
+    supabase.from("bookings").select("*", { count: "exact", head: true }),
   ]);
 
   // Options disponibles par site, pour proposer un ajout ciblé sur chaque
   // réservation planifiée (celles déjà appliquées à la plaque sont exclues).
   const optionsBySite = new Map<string, { option_id: string; name: string }[]>();
+  // Même catalogue, mais au format attendu par le formulaire de création
+  // manuelle (id de la ligne site_options, comme côté client).
+  const siteOptionsForForm = new Map<
+    string,
+    { id: string; price: number; option: { id: string; name: string; is_base: boolean } }[]
+  >();
   for (const so of siteOptions || []) {
+    const optName = (so.option as any)?.name || "";
     const list = optionsBySite.get(so.site_id) || [];
-    list.push({ option_id: so.option_id, name: (so.option as any)?.name || "" });
+    list.push({ option_id: so.option_id, name: optName });
     optionsBySite.set(so.site_id, list);
+
+    const formList = siteOptionsForForm.get(so.site_id) || [];
+    formList.push({
+      id: so.id,
+      price: Number(so.price),
+      option: {
+        id: (so.option as any)?.id || so.option_id,
+        name: optName,
+        is_base: !!(so.option as any)?.is_base,
+      },
+    });
+    siteOptionsForForm.set(so.site_id, formList);
   }
 
   const tabs = [
-    { key: "pending", label: "En attente" },
-    { key: "scheduled", label: "Planifiées" },
-    { key: "done", label: "Terminées" },
-    { key: "all", label: "Toutes" },
+    { key: "pending", label: "En attente", count: pendingCount ?? 0 },
+    { key: "scheduled", label: "Planifiées", count: scheduledCount ?? 0 },
+    { key: "done", label: "Terminées", count: doneCount ?? 0 },
+    { key: "all", label: "Toutes", count: allCount ?? 0 },
   ];
 
   return (
     <div className="space-y-5">
       <PageHeader title="Planification" description="Assigne un jour et une heure à chaque véhicule déposé par les sites." />
 
+      <AdminNewBookingForm
+        sites={sites || []}
+        siteOptionsBySite={Object.fromEntries(siteOptionsForForm)}
+      />
+
       <div className="flex gap-1.5">
         {tabs.map((t) => (
           <a
             key={t.key}
             href={`/admin/bookings?status=${t.key}`}
-            className={`text-sm px-3 py-1.5 rounded-md border transition-colors ${
+            className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md border transition-colors ${
               status === t.key
                 ? "bg-ink text-white border-ink"
                 : "bg-surface border-border text-ink-soft hover:border-border-strong"
             }`}
           >
             {t.label}
+            <span
+              className={`min-w-[1.25rem] px-1 text-center text-xs font-semibold rounded-full tabular-nums ${
+                status === t.key ? "bg-white/20 text-white" : "bg-black/[0.06] text-ink-soft"
+              }`}
+            >
+              {t.count}
+            </span>
           </a>
         ))}
       </div>
@@ -125,13 +170,22 @@ export default async function AdminBookingsPage({
                     <p className="text-sm text-ink-soft">
                       Prévu le {formatDateFR(b.scheduled_date)} à {String(b.scheduled_time).slice(0, 5)}
                     </p>
-                    <form action={markDone}>
-                      <input type="hidden" name="booking_id" value={b.id} />
-                      <button className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium hover:text-emerald-800">
-                        <CheckCheck className="h-4 w-4" strokeWidth={2} />
-                        Marquer terminé
-                      </button>
-                    </form>
+                    <div className="flex items-center gap-4">
+                      <form action={markDone}>
+                        <input type="hidden" name="booking_id" value={b.id} />
+                        <button className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium hover:text-emerald-800">
+                          <CheckCheck className="h-4 w-4" strokeWidth={2} />
+                          Marquer terminé
+                        </button>
+                      </form>
+                      <form action={cancelBooking}>
+                        <input type="hidden" name="booking_id" value={b.id} />
+                        <button className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700">
+                          <Trash2 className="h-4 w-4" strokeWidth={2} />
+                          Supprimer
+                        </button>
+                      </form>
+                    </div>
                   </div>
                   {(() => {
                     const applied = new Set((b.booking_options || []).map((o: any) => o.option_id));
@@ -154,6 +208,22 @@ export default async function AdminBookingsPage({
                       </form>
                     );
                   })()}
+                </div>
+              )}
+
+              {b.status === "done" && (
+                <div className="mt-3.5 flex items-center justify-between border-t border-border pt-3.5">
+                  <p className="text-sm text-ink-soft">
+                    Terminé — était prévu le {formatDateFR(b.scheduled_date)}{" "}
+                    {b.scheduled_time ? `à ${String(b.scheduled_time).slice(0, 5)}` : ""}
+                  </p>
+                  <form action={cancelBooking}>
+                    <input type="hidden" name="booking_id" value={b.id} />
+                    <button className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700">
+                      <Trash2 className="h-4 w-4" strokeWidth={2} />
+                      Supprimer
+                    </button>
+                  </form>
                 </div>
               )}
             </div>

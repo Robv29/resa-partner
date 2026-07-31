@@ -2,6 +2,67 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { isoWeek } from "@/lib/format";
+
+// Permet à l'admin/manager de créer et planifier un véhicule lui-même
+// (ex: appel téléphonique du site, oubli du client), sans attendre une
+// demande déposée par un contact. Le véhicule part directement en statut
+// "scheduled".
+export async function adminCreateBooking(formData: FormData) {
+  const supabase = createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error("Non authentifié");
+
+  const siteId = String(formData.get("site_id") || "");
+  const plate = String(formData.get("plate") || "").trim().toUpperCase();
+  const brandModel = String(formData.get("brand_model") || "").trim();
+  const scheduledDate = String(formData.get("scheduled_date") || "");
+  const scheduledTime = String(formData.get("scheduled_time") || "");
+  const selectedSiteOptionIds = formData.getAll("option") as string[];
+
+  if (!siteId || !plate || !scheduledDate || !scheduledTime) {
+    throw new Error("Site, plaque, date et heure sont obligatoires");
+  }
+
+  const { data: booking, error: bookingError } = await supabase
+    .from("bookings")
+    .insert({
+      site_id: siteId,
+      requested_by: user.id,
+      plate,
+      brand_model: brandModel || null,
+      iso_week: isoWeek(),
+      status: "scheduled",
+      scheduled_date: scheduledDate,
+      scheduled_time: scheduledTime,
+      scheduled_by: user.id,
+    })
+    .select("id")
+    .single();
+  if (bookingError || !booking) throw new Error(bookingError?.message || "Erreur création véhicule");
+
+  if (selectedSiteOptionIds.length > 0) {
+    const { data: siteOptions } = await supabase
+      .from("site_options")
+      .select("id, price, option:options(id, name)")
+      .in("id", selectedSiteOptionIds);
+
+    if (siteOptions && siteOptions.length > 0) {
+      const rows = siteOptions.map((so: any) => ({
+        booking_id: booking.id,
+        option_id: so.option.id,
+        option_name: so.option.name,
+        price: so.price,
+      }));
+      await supabase.from("booking_options").insert(rows);
+    }
+  }
+
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin");
+}
 
 export async function scheduleBooking(formData: FormData) {
   const supabase = createClient();
