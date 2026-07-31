@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
-import { CarFront, Droplets } from "lucide-react";
+import Image from "next/image";
+import { CarFront } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR } from "@/lib/format";
 import NewBookingForm from "./NewBookingForm";
@@ -57,8 +58,8 @@ export default async function DashboardPage() {
       <header className="bg-ink">
         <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white">
-              <Droplets className="h-4 w-4" strokeWidth={2.25} />
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white p-1">
+              <Image src="/logo-mark.png" alt="Résa Partner" width={32} height={32} className="h-full w-full object-contain" />
             </span>
             <div>
               <p className="text-sm font-semibold text-white leading-tight">{site?.name}</p>

@@ -1,5 +1,5 @@
 import { redirect } from "next/navigation";
-import { Droplets } from "lucide-react";
+import Image from "next/image";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "@/components/LogoutButton";
 import AdminNav from "@/components/AdminNav";
@@ -27,10 +27,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
           <div className="flex items-center gap-8">
             <div className="flex items-center gap-2">
-              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white/10 text-white">
-                <Droplets className="h-3.5 w-3.5" strokeWidth={2.25} />
+              <span className="flex h-7 w-7 items-center justify-center rounded-md bg-white p-1">
+                <Image src="/logo-mark.png" alt="Résa Partner" width={28} height={28} className="h-full w-full object-contain" />
               </span>
-              <span className="font-semibold text-white text-sm tracking-[-0.01em]">VGS Autos</span>
+              <span className="font-semibold text-white text-sm tracking-[-0.01em]">Résa Partner</span>
             </div>
             <AdminNav />
           </div>

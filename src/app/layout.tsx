@@ -9,8 +9,9 @@ const inter = Inter({
 });
 
 export const metadata: Metadata = {
-  title: "VGS Autos — Réservation nettoyage",
+  title: "Résa Partner — VGS Autos",
   description: "Espace de réservation et de suivi du nettoyage automobile VGS Autos",
+  icons: { icon: "/logo-mark.png" },
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {

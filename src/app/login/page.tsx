@@ -1,4 +1,5 @@
-import { Droplets, TriangleAlert } from "lucide-react";
+import Image from "next/image";
+import { TriangleAlert } from "lucide-react";
 import { signIn } from "./actions";
 import { inputClass, labelClass, buttonClass } from "@/components/ui";
 
@@ -11,13 +12,10 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
       />
 
       <div className="relative w-full max-w-sm">
-        <div className="flex items-center gap-2 mb-1">
-          <span className="flex h-8 w-8 items-center justify-center rounded-md bg-ink text-white">
-            <Droplets className="h-4 w-4" strokeWidth={2.25} />
-          </span>
-          <h1 className="text-lg font-semibold text-ink tracking-[-0.01em]">VGS Autos</h1>
+        <div className="mb-1">
+          <Image src="/logo-full.png" alt="Résa Partner" width={220} height={220} className="h-24 w-auto" priority />
         </div>
-        <p className="text-ink-soft mb-7 text-sm">Espace de réservation nettoyage automobile</p>
+        <p className="text-ink-soft mb-7 text-sm">Espace de réservation nettoyage automobile — VGS Autos</p>
 
         <form action={signIn} className="bg-surface border border-border rounded-lg p-6 space-y-4">
           <div>
