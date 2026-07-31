@@ -24,7 +24,7 @@ export default function BillingFilters({
       <select
         value={currentSite}
         onChange={(e) => update(e.target.value, currentMonth)}
-        className="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+        className="border border-border rounded-md px-3 py-2 text-sm bg-surface text-ink"
       >
         {sites.map((s) => (
           <option key={s.id} value={s.id}>{s.name}</option>
@@ -33,7 +33,7 @@ export default function BillingFilters({
       <select
         value={currentMonth}
         onChange={(e) => update(currentSite, e.target.value)}
-        className="border border-slate-300 rounded-md px-3 py-2 text-sm bg-white"
+        className="border border-border rounded-md px-3 py-2 text-sm bg-surface text-ink"
       >
         {months.map((m) => (
           <option key={m.value} value={m.value}>{m.label}</option>

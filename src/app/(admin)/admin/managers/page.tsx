@@ -1,5 +1,8 @@
+import { UserRound, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { inviteManager, removeManager } from "./actions";
+import { panelClass, inputClass, buttonClass } from "@/components/ui";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default async function ManagersPage() {
   const supabase = createClient();
@@ -10,39 +13,51 @@ export default async function ManagersPage() {
     .order("role");
 
   return (
-    <div className="grid grid-cols-3 gap-6">
-      <div className="col-span-2 space-y-2">
-        <h1 className="font-semibold text-sm text-slate-600 mb-2">Équipe interne VGS Autos</h1>
-        {(team || []).map((m: any) => (
-          <div key={m.id} className="bg-white border border-slate-200 rounded-lg p-4 flex items-center justify-between">
-            <div>
-              <p className="font-semibold">{m.full_name}</p>
-              <p className="text-xs text-slate-400">{m.email}</p>
-            </div>
-            <div className="flex items-center gap-3">
-              <span className="text-xs px-2 py-1 rounded-full bg-slate-100 text-slate-600 capitalize">{m.role}</span>
-              {m.role !== "admin" && (
-                <form action={removeManager}>
-                  <input type="hidden" name="manager_id" value={m.id} />
-                  <button className="text-xs text-red-600">Retirer</button>
-                </form>
-              )}
-            </div>
-          </div>
-        ))}
-      </div>
+    <div className="space-y-6">
+      <PageHeader title="Équipe interne" description="Managers et admins qui reçoivent les notifications de planification." />
 
-      <div>
-        <h2 className="font-semibold text-sm text-slate-600 mb-2">Ajouter un membre</h2>
-        <form action={inviteManager} className="bg-white border border-slate-200 rounded-lg p-4 space-y-3">
-          <input name="full_name" placeholder="Nom" required className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
-          <input name="email" type="email" placeholder="Email" required className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm" />
-          <select name="role" className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm">
-            <option value="manager">Manager</option>
-            <option value="admin">Admin</option>
-          </select>
-          <button className="w-full bg-brand text-white rounded-md py-2 text-sm font-semibold">Inviter</button>
-        </form>
+      <div className="grid grid-cols-3 gap-6">
+        <div className="col-span-2 space-y-2">
+          {(team || []).map((m: any) => (
+            <div key={m.id} className={`${panelClass} flex items-center justify-between p-4`}>
+              <div className="flex items-center gap-3">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.04] text-ink-soft">
+                  {m.role === "admin" ? (
+                    <ShieldCheck className="h-4 w-4" strokeWidth={2} />
+                  ) : (
+                    <UserRound className="h-4 w-4" strokeWidth={2} />
+                  )}
+                </span>
+                <div>
+                  <p className="font-medium text-ink">{m.full_name}</p>
+                  <p className="text-xs text-ink-faint">{m.email}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="text-xs px-2 py-1 rounded-full bg-black/[0.04] text-ink-soft capitalize">{m.role}</span>
+                {m.role !== "admin" && (
+                  <form action={removeManager}>
+                    <input type="hidden" name="manager_id" value={m.id} />
+                    <button className="text-xs text-red-600 hover:text-red-700">Retirer</button>
+                  </form>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div>
+          <h2 className="font-medium text-sm text-ink-soft mb-2">Ajouter un membre</h2>
+          <form action={inviteManager} className={`${panelClass} p-4 space-y-3`}>
+            <input name="full_name" placeholder="Nom" required className={inputClass} />
+            <input name="email" type="email" placeholder="Email" required className={inputClass} />
+            <select name="role" className={inputClass}>
+              <option value="manager">Manager</option>
+              <option value="admin">Admin</option>
+            </select>
+            <button className={buttonClass("primary", "w-full")}>Inviter</button>
+          </form>
+        </div>
       </div>
     </div>
   );

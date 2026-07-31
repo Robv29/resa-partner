@@ -1,7 +1,10 @@
+import { Receipt } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatEUR, lastMonths, monthRange } from "@/lib/format";
 import BillingFilters from "./BillingFilters";
 import CopyPlatesButton from "./CopyPlatesButton";
+import { panelClass } from "@/components/ui";
+import PageHeader from "@/components/ui/PageHeader";
 
 export default async function BillingPage({
   searchParams,
@@ -16,7 +19,11 @@ export default async function BillingPage({
   const currentSite = searchParams.site || sites?.[0]?.id || "";
 
   if (!currentSite) {
-    return <p className="text-sm text-slate-400">Créez d'abord un site pour accéder à la facturation.</p>;
+    return (
+      <div className={`${panelClass} p-8 text-center`}>
+        <p className="text-sm text-ink-faint">Créez d'abord un site pour accéder à la facturation.</p>
+      </div>
+    );
   }
 
   const { start, end } = monthRange(currentMonth);
@@ -50,35 +57,39 @@ export default async function BillingPage({
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
-        <h1 className="font-semibold text-sm text-slate-600">Facturation — {siteName}</h1>
-        <BillingFilters sites={sites || []} months={months} currentSite={currentSite} currentMonth={currentMonth} />
+      <PageHeader
+        title={`Facturation — ${siteName}`}
+        description="Détail par option, prêt à copier pour ta facture."
+        actions={<BillingFilters sites={sites || []} months={months} currentSite={currentSite} currentMonth={currentMonth} />}
+      />
+
+      <div className={`${panelClass} flex items-center justify-between p-5`}>
+        <span className="flex items-center gap-2 text-sm text-ink-soft">
+          <Receipt className="h-4 w-4 text-ink-faint" strokeWidth={2} />
+          Total à facturer sur la période
+        </span>
+        <span className="text-2xl font-semibold text-ink tabular-nums">{formatEUR(grandTotal)}</span>
       </div>
 
-      <div className="bg-white border border-slate-200 rounded-lg p-5 flex items-center justify-between">
-        <span className="text-sm text-slate-500">Total à facturer sur la période</span>
-        <span className="text-2xl font-bold text-brand">{formatEUR(grandTotal)}</span>
-      </div>
-
-      <div className="bg-white border border-slate-200 rounded-lg">
+      <div className={panelClass}>
         <table className="w-full text-sm">
           <thead>
-            <tr className="text-left text-xs text-slate-400 border-b border-slate-100">
-              <th className="py-3 px-4">Option</th>
-              <th className="py-3 px-4">Nb véhicules</th>
-              <th className="py-3 px-4">Sous-total</th>
-              <th className="py-3 px-4">Plaques concernées</th>
+            <tr className="text-left text-xs text-ink-faint border-b border-border">
+              <th className="py-3 px-5 font-medium">Option</th>
+              <th className="py-3 px-4 font-medium">Nb véhicules</th>
+              <th className="py-3 px-4 font-medium">Sous-total</th>
+              <th className="py-3 px-5 font-medium">Plaques concernées</th>
             </tr>
           </thead>
           <tbody>
             {rows.map(([optionName, g]) => (
-              <tr key={optionName} className="border-b border-slate-50 align-top">
-                <td className="py-3 px-4 font-medium">{optionName}</td>
-                <td className="py-3 px-4">{g.plates.size}</td>
-                <td className="py-3 px-4 font-semibold">{formatEUR(g.total)}</td>
-                <td className="py-3 px-4">
+              <tr key={optionName} className="border-b border-border last:border-0 align-top">
+                <td className="py-3 px-5 font-medium text-ink">{optionName}</td>
+                <td className="py-3 px-4 text-ink-soft tabular-nums">{g.plates.size}</td>
+                <td className="py-3 px-4 font-semibold text-ink tabular-nums">{formatEUR(g.total)}</td>
+                <td className="py-3 px-5">
                   <div className="flex items-center gap-3">
-                    <span className="text-slate-500">{Array.from(g.plates).join(", ")}</span>
+                    <span className="text-ink-faint font-mono text-xs">{Array.from(g.plates).join(", ")}</span>
                     <CopyPlatesButton plates={Array.from(g.plates)} />
                   </div>
                 </td>
@@ -86,7 +97,7 @@ export default async function BillingPage({
             ))}
             {rows.length === 0 && (
               <tr>
-                <td colSpan={4} className="py-6 px-4 text-center text-slate-400">
+                <td colSpan={4} className="py-8 px-5 text-center text-ink-faint">
                   Aucune prestation facturable sur cette période.
                 </td>
               </tr>

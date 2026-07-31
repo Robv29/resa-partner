@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { Check, Copy } from "lucide-react";
 
 export default function CopyPlatesButton({ plates }: { plates: string[] }) {
   const [copied, setCopied] = useState(false);
@@ -12,9 +13,10 @@ export default function CopyPlatesButton({ plates }: { plates: string[] }) {
         setCopied(true);
         setTimeout(() => setCopied(false), 1500);
       }}
-      className="text-xs text-brand-accent font-semibold hover:underline"
+      className="flex items-center gap-1 text-xs text-accent-ink font-medium hover:underline shrink-0"
     >
-      {copied ? "Copié ✓" : `Copier les ${plates.length} plaque(s)`}
+      {copied ? <Check className="h-3 w-3" strokeWidth={2.5} /> : <Copy className="h-3 w-3" strokeWidth={2} />}
+      {copied ? "Copié" : `Copier (${plates.length})`}
     </button>
   );
 }

@@ -1,15 +1,11 @@
 import { redirect } from "next/navigation";
+import { CarFront, Droplets } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR } from "@/lib/format";
 import NewBookingForm from "./NewBookingForm";
 import LogoutButton from "@/components/LogoutButton";
-
-const STATUS_LABEL: Record<string, { label: string; color: string }> = {
-  pending: { label: "En attente de planification", color: "bg-amber-100 text-amber-700" },
-  scheduled: { label: "Planifié", color: "bg-blue-100 text-blue-700" },
-  done: { label: "Terminé", color: "bg-emerald-100 text-emerald-700" },
-  cancelled: { label: "Annulé", color: "bg-slate-100 text-slate-500" },
-};
+import StatusBadge from "@/components/ui/StatusBadge";
+import { panelClass } from "@/components/ui";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -26,10 +22,10 @@ export default async function DashboardPage() {
 
   if (!profile?.site_id) {
     return (
-      <main className="max-w-3xl mx-auto p-6">
-        <p className="text-red-600">
+      <main className="max-w-lg mx-auto p-6 mt-10">
+        <div className={`${panelClass} p-5 text-sm text-red-700 bg-red-50 border-red-100`}>
           Votre compte n'est rattaché à aucun site. Contactez VGS Autos pour régulariser votre accès.
-        </p>
+        </div>
       </main>
     );
   }
@@ -57,52 +53,65 @@ export default async function DashboardPage() {
   });
 
   return (
-    <main className="max-w-3xl mx-auto p-6 space-y-6">
-      <header className="flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-bold text-brand">{site?.name}</h1>
-          <p className="text-sm text-slate-500">Bonjour {profile.full_name}</p>
+    <div className="min-h-screen">
+      <header className="bg-ink">
+        <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
+          <div className="flex items-center gap-2.5">
+            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white/10 text-white">
+              <Droplets className="h-4 w-4" strokeWidth={2.25} />
+            </span>
+            <div>
+              <p className="text-sm font-semibold text-white leading-tight">{site?.name}</p>
+              <p className="text-xs text-white/50 leading-tight">Bonjour {profile.full_name}</p>
+            </div>
+          </div>
+          <LogoutButton dark />
         </div>
-        <LogoutButton />
       </header>
 
-      <NewBookingForm siteOptions={sortedOptions as any} />
+      <main className="max-w-2xl mx-auto p-5 space-y-6">
+        <NewBookingForm siteOptions={sortedOptions as any} />
 
-      <section>
-        <h2 className="font-semibold text-sm text-slate-600 mb-3">Véhicules déposés</h2>
-        <div className="space-y-2">
-          {(bookings || []).length === 0 && (
-            <p className="text-sm text-slate-400">Aucune demande pour le moment.</p>
-          )}
-          {(bookings || []).map((b: any) => {
-            const total = (b.booking_options || []).reduce((s: number, o: any) => s + Number(o.price), 0);
-            const status = STATUS_LABEL[b.status] || STATUS_LABEL.pending;
-            return (
-              <div key={b.id} className="bg-white border border-slate-200 rounded-lg p-4 flex items-center justify-between">
-                <div>
-                  <p className="font-semibold">{b.plate}</p>
-                  <p className="text-xs text-slate-500">{b.brand_model || "—"}</p>
-                  {(b.booking_options || []).length > 0 && (
-                    <p className="text-xs text-slate-400 mt-1">
-                      {b.booking_options.map((o: any) => o.option_name).join(", ")} · {formatEUR(total)}
-                    </p>
-                  )}
-                </div>
-                <div className="text-right">
-                  <span className={`inline-block text-xs px-2 py-1 rounded-full font-medium ${status.color}`}>
-                    {status.label}
-                  </span>
-                  {b.scheduled_date && (
-                    <p className="text-xs text-slate-500 mt-1">
-                      {formatDateFR(b.scheduled_date)} {b.scheduled_time ? `à ${String(b.scheduled_time).slice(0, 5)}` : ""}
-                    </p>
-                  )}
-                </div>
+        <section>
+          <h2 className="font-semibold text-sm text-ink-soft mb-3">
+            Véhicules déposés {bookings && bookings.length > 0 && <span className="text-ink-faint">({bookings.length})</span>}
+          </h2>
+          <div className="space-y-2">
+            {(bookings || []).length === 0 && (
+              <div className={`${panelClass} p-8 text-center`}>
+                <CarFront className="h-6 w-6 mx-auto text-ink-faint mb-2" strokeWidth={1.5} />
+                <p className="text-sm text-ink-faint">Aucune demande pour le moment.</p>
               </div>
-            );
-          })}
-        </div>
-      </section>
-    </main>
+            )}
+            {(bookings || []).map((b: any) => {
+              const total = (b.booking_options || []).reduce((s: number, o: any) => s + Number(o.price), 0);
+              return (
+                <div key={b.id} className={`${panelClass} p-4 flex items-center justify-between gap-3`}>
+                  <div className="min-w-0">
+                    <span className="inline-block rounded border border-border-strong bg-black/[0.02] px-2 py-0.5 font-mono text-sm font-semibold tracking-wider text-ink">
+                      {b.plate}
+                    </span>
+                    <p className="text-xs text-ink-faint mt-1.5 truncate">{b.brand_model || "—"}</p>
+                    {(b.booking_options || []).length > 0 && (
+                      <p className="text-xs text-ink-faint mt-0.5 truncate">
+                        {b.booking_options.map((o: any) => o.option_name).join(", ")} · {formatEUR(total)}
+                      </p>
+                    )}
+                  </div>
+                  <div className="text-right shrink-0">
+                    <StatusBadge status={b.status} />
+                    {b.scheduled_date && (
+                      <p className="text-xs text-ink-faint mt-1.5">
+                        {formatDateFR(b.scheduled_date)} {b.scheduled_time ? `à ${String(b.scheduled_time).slice(0, 5)}` : ""}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </main>
+    </div>
   );
 }

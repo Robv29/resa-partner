@@ -2,7 +2,9 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Sparkles, TriangleAlert } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
+import { inputClass, buttonClass } from "@/components/ui";
 
 // Page atteinte via le lien d'invitation Supabase. Le SDK échange
 // automatiquement le token présent dans l'URL contre une session
@@ -28,10 +30,22 @@ export default function SetPasswordPage() {
   }
 
   return (
-    <main className="min-h-screen flex items-center justify-center px-4">
-      <form onSubmit={handleSubmit} className="w-full max-w-sm bg-white border border-slate-200 rounded-lg p-6 space-y-4">
-        <h1 className="text-lg font-bold text-brand">Bienvenue chez VGS Autos</h1>
-        <p className="text-sm text-slate-500">Choisissez votre mot de passe pour activer votre accès.</p>
+    <main className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+      <div
+        aria-hidden
+        className="absolute -top-40 left-1/2 -translate-x-1/2 h-96 w-[36rem] rounded-full bg-accent/10 blur-3xl"
+      />
+      <form
+        onSubmit={handleSubmit}
+        className="relative w-full max-w-sm bg-surface border border-border rounded-lg p-6 space-y-4"
+      >
+        <span className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-soft text-accent-ink">
+          <Sparkles className="h-4 w-4" strokeWidth={2.25} />
+        </span>
+        <div>
+          <h1 className="text-lg font-semibold text-ink tracking-[-0.01em]">Bienvenue chez VGS Autos</h1>
+          <p className="text-sm text-ink-soft mt-1">Choisissez votre mot de passe pour activer votre accès.</p>
+        </div>
         <input
           type="password"
           required
@@ -39,15 +53,17 @@ export default function SetPasswordPage() {
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           placeholder="Nouveau mot de passe (8 caractères min.)"
-          className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm"
+          className={inputClass}
+          autoFocus
         />
-        {error && <p className="text-sm text-red-600">{error}</p>}
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full bg-brand text-white rounded-md py-2 text-sm font-semibold hover:bg-slate-800 disabled:opacity-50"
-        >
-          {loading ? "…" : "Activer mon compte"}
+        {error && (
+          <p className="flex items-start gap-1.5 text-sm text-red-600">
+            <TriangleAlert className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
+            {error}
+          </p>
+        )}
+        <button type="submit" disabled={loading} className={buttonClass("primary", "w-full py-2.5")}>
+          {loading ? "Activation…" : "Activer mon compte"}
         </button>
       </form>
     </main>
