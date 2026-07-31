@@ -25,6 +25,37 @@ export async function scheduleBooking(formData: FormData) {
   revalidatePath("/admin");
 }
 
+// Ajoute une option supplémentaire à une réservation déjà planifiée (ex: le
+// convoyeur constate sur place qu'il faut un dégoudronnage en plus). Le prix
+// est celui en vigueur pour ce site au moment de l'ajout.
+export async function addBookingOption(formData: FormData) {
+  const supabase = createClient();
+  const bookingId = String(formData.get("booking_id"));
+  const siteId = String(formData.get("site_id"));
+  const optionId = String(formData.get("option_id"));
+  if (!optionId) throw new Error("Choisis une option");
+
+  const { data: siteOption, error: siteOptionError } = await supabase
+    .from("site_options")
+    .select("price, option:options(name)")
+    .eq("site_id", siteId)
+    .eq("option_id", optionId)
+    .eq("active", true)
+    .single();
+  if (siteOptionError || !siteOption) throw new Error("Option indisponible pour ce site");
+
+  const { error } = await supabase.from("booking_options").insert({
+    booking_id: bookingId,
+    option_id: optionId,
+    option_name: (siteOption.option as any)?.name || "",
+    price: siteOption.price,
+  });
+  if (error) throw new Error(error.message);
+
+  revalidatePath("/admin/bookings");
+  revalidatePath("/admin/billing");
+}
+
 export async function markDone(formData: FormData) {
   const supabase = createClient();
   const bookingId = String(formData.get("booking_id"));

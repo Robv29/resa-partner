@@ -28,15 +28,16 @@ export default async function BillingPage({
 
   const { start, end } = monthRange(currentMonth);
 
-  // Facturable = prestations planifiées ou terminées dans le mois (on exclut
-  // les demandes annulées et celles encore en attente de planification).
+  // Facturable = prestations réellement terminées dans le mois (on exclut
+  // les demandes annulées, en attente, et celles seulement planifiées mais
+  // pas encore effectuées — on ne facture que le travail fait).
   const { data: bookings } = await supabase
     .from("bookings")
     .select("id, plate, scheduled_date, status, booking_options(option_name, price)")
     .eq("site_id", currentSite)
     .gte("scheduled_date", start)
     .lt("scheduled_date", end)
-    .in("status", ["scheduled", "done"]);
+    .eq("status", "done");
 
   type Group = { total: number; plates: Set<string> };
   const byOption = new Map<string, Group>();

@@ -1,7 +1,7 @@
 import { TriangleAlert, CheckCheck, CarFront } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR } from "@/lib/format";
-import { scheduleBooking, markDone, cancelBooking } from "./actions";
+import { scheduleBooking, markDone, cancelBooking, addBookingOption } from "./actions";
 import { panelClass, inputClass, buttonClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
@@ -17,14 +17,29 @@ export default async function AdminBookingsPage({
   let query = supabase
     .from("bookings")
     .select(
-      "id, plate, brand_model, attention_notes, status, scheduled_date, scheduled_time, created_at, site:sites(name), booking_options(option_name, price)"
+      "id, site_id, plate, brand_model, attention_notes, status, scheduled_date, scheduled_time, created_at, site:sites(name), booking_options(option_id, option_name, price)"
     )
     .order("created_at", { ascending: false })
     .limit(100);
 
   if (status !== "all") query = query.eq("status", status);
 
-  const { data: bookings } = await query;
+  const [{ data: bookings }, { data: siteOptions }] = await Promise.all([
+    query,
+    supabase
+      .from("site_options")
+      .select("site_id, option_id, price, option:options(name)")
+      .eq("active", true),
+  ]);
+
+  // Options disponibles par site, pour proposer un ajout ciblé sur chaque
+  // réservation planifiée (celles déjà appliquées à la plaque sont exclues).
+  const optionsBySite = new Map<string, { option_id: string; name: string }[]>();
+  for (const so of siteOptions || []) {
+    const list = optionsBySite.get(so.site_id) || [];
+    list.push({ option_id: so.option_id, name: (so.option as any)?.name || "" });
+    optionsBySite.set(so.site_id, list);
+  }
 
   const tabs = [
     { key: "pending", label: "En attente" },
@@ -105,17 +120,40 @@ export default async function AdminBookingsPage({
               )}
 
               {b.status === "scheduled" && (
-                <div className="mt-3.5 flex items-center justify-between border-t border-border pt-3.5">
-                  <p className="text-sm text-ink-soft">
-                    Prévu le {formatDateFR(b.scheduled_date)} à {String(b.scheduled_time).slice(0, 5)}
-                  </p>
-                  <form action={markDone}>
-                    <input type="hidden" name="booking_id" value={b.id} />
-                    <button className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium hover:text-emerald-800">
-                      <CheckCheck className="h-4 w-4" strokeWidth={2} />
-                      Marquer terminé
-                    </button>
-                  </form>
+                <div className="mt-3.5 border-t border-border pt-3.5 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-ink-soft">
+                      Prévu le {formatDateFR(b.scheduled_date)} à {String(b.scheduled_time).slice(0, 5)}
+                    </p>
+                    <form action={markDone}>
+                      <input type="hidden" name="booking_id" value={b.id} />
+                      <button className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium hover:text-emerald-800">
+                        <CheckCheck className="h-4 w-4" strokeWidth={2} />
+                        Marquer terminé
+                      </button>
+                    </form>
+                  </div>
+                  {(() => {
+                    const applied = new Set((b.booking_options || []).map((o: any) => o.option_id));
+                    const available = (optionsBySite.get(b.site_id) || []).filter((o) => !applied.has(o.option_id));
+                    if (available.length === 0) return null;
+                    return (
+                      <form action={addBookingOption} className="flex items-end gap-2">
+                        <input type="hidden" name="booking_id" value={b.id} />
+                        <input type="hidden" name="site_id" value={b.site_id} />
+                        <div className="flex-1">
+                          <label className="block text-xs text-ink-faint mb-1">Ajouter une option (constatée sur place)</label>
+                          <select name="option_id" required className={`${inputClass} py-1.5`}>
+                            <option value="">— Choisir —</option>
+                            {available.map((o) => (
+                              <option key={o.option_id} value={o.option_id}>{o.name}</option>
+                            ))}
+                          </select>
+                        </div>
+                        <button className={buttonClass("secondary", "py-1.5")}>Ajouter</button>
+                      </form>
+                    );
+                  })()}
                 </div>
               )}
             </div>

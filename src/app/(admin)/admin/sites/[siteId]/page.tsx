@@ -7,6 +7,7 @@ import {
   toggleSiteOption,
   inviteContact,
   removeContact,
+  createOption,
 } from "../actions";
 import { panelClass, inputClass, labelClass, buttonClass } from "@/components/ui";
 
@@ -162,8 +163,22 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
             })}
           </tbody>
         </table>
+        <form action={createOption} className="flex items-end gap-2 px-5 py-4 border-t border-border">
+          <input type="hidden" name="site_id" value={siteId} />
+          <div className="flex-1">
+            <label className={labelClass}>Nouvelle option</label>
+            <input name="new_option_name" placeholder="Ex: Nettoyage moteur" required className={inputClass} />
+          </div>
+          <div className="w-28">
+            <label className={labelClass}>Prix (€)</label>
+            <input type="number" step="0.01" min="0" name="new_option_price" placeholder="0.00" className={inputClass} />
+          </div>
+          <button className={buttonClass("secondary")}>Créer et activer ici</button>
+        </form>
         <p className="text-xs text-ink-faint px-5 py-4">
-          Le tarif de chaque option est propre à ce site et n'affecte aucun autre site.
+          Le tarif de chaque option est propre à ce site et n'affecte aucun autre site. Une option créée ici rejoint
+          le catalogue global : tu pourras l'activer et lui donner un autre prix sur les autres sites depuis leur
+          propre fiche.
         </p>
       </div>
     </div>

@@ -35,6 +35,33 @@ export async function updateSite(formData: FormData) {
   revalidatePath(`/admin/sites/${siteId}`);
 }
 
+// Crée une nouvelle option dans le catalogue global (visible ensuite pour
+// tous les sites, à activer/tarifer site par site) directement depuis la
+// fiche site, sans repasser par un autre écran.
+export async function createOption(formData: FormData) {
+  const supabase = createClient();
+  const siteId = String(formData.get("site_id"));
+  const name = String(formData.get("new_option_name") || "").trim();
+  const price = Number(formData.get("new_option_price") || 0);
+  if (!name) throw new Error("Nom de l'option requis");
+
+  const { data: option, error } = await supabase
+    .from("options")
+    .insert({ name })
+    .select("id")
+    .single();
+  if (error) throw new Error(error.message);
+
+  // Active directement l'option sur ce site avec le prix indiqué, pour
+  // éviter un aller-retour supplémentaire.
+  const { error: siteOptionError } = await supabase
+    .from("site_options")
+    .insert({ site_id: siteId, option_id: option.id, price, active: true });
+  if (siteOptionError) throw new Error(siteOptionError.message);
+
+  revalidatePath(`/admin/sites/${siteId}`);
+}
+
 // Ajoute une option du catalogue au site avec un prix (upsert)
 export async function upsertSiteOption(formData: FormData) {
   const supabase = createClient();

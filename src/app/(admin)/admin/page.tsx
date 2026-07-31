@@ -31,7 +31,10 @@ export default async function AdminOverview() {
 
       <div className={`${panelClass} grid grid-cols-3 divide-x divide-border`}>
         {stats.map((s) => (
-          <div key={s.label} className="p-5">
+          <div key={s.label} className="relative p-5">
+            {s.label === "En attente de planification" && s.value > 0 && (
+              <span className="absolute right-4 top-4 flex h-2 w-2 rounded-full bg-red-500" aria-label="Plaques non validées" />
+            )}
             <s.Icon className={`h-4 w-4 mb-3 ${s.tone}`} strokeWidth={2} />
             <p className={`text-2xl font-semibold tabular-nums ${s.tone}`}>{s.value}</p>
             <p className="text-xs text-ink-faint mt-1">{s.label}</p>
@@ -41,7 +44,10 @@ export default async function AdminOverview() {
 
       <div className={panelClass}>
         <div className="flex items-center justify-between px-5 py-4 border-b border-border">
-          <h2 className="font-medium text-sm text-ink">Demandes à planifier en priorité</h2>
+          <h2 className="flex items-center gap-2 font-medium text-sm text-ink">
+            Demandes à planifier en priorité
+            {(pending || []).length > 0 && <span className="h-2 w-2 rounded-full bg-red-500" aria-hidden />}
+          </h2>
           <Link href="/admin/bookings" className="flex items-center gap-1 text-sm text-accent-ink hover:underline">
             Tout voir <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
           </Link>
