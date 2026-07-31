@@ -1,6 +1,6 @@
 import { TriangleAlert, CheckCheck, CarFront, Trash2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
-import { formatDateFR, formatEUR } from "@/lib/format";
+import { formatDateFR, formatEUR, todayISO } from "@/lib/format";
 import { scheduleBooking, markDone, cancelBooking, addBookingOption } from "./actions";
 import { panelClass, inputClass, buttonClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
@@ -15,12 +15,17 @@ export default async function AdminBookingsPage({
   const supabase = createClient();
   const status = searchParams.status || "pending";
 
+  const today = todayISO();
+
   let query = supabase
     .from("bookings")
     .select(
       "id, site_id, plate, brand_model, attention_notes, status, scheduled_date, scheduled_time, created_at, site:sites(name), booking_options(option_id, option_name, price)"
     )
-    .order("created_at", { ascending: false })
+    // Tri chronologique : d'abord par jour planifié (les demandes en attente,
+    // sans date, passent en dernier et se trient alors par date de dépôt).
+    .order("scheduled_date", { ascending: true, nullsFirst: false })
+    .order("created_at", { ascending: true })
     .limit(100);
 
   if (status !== "all") query = query.eq("status", status);
@@ -122,13 +127,22 @@ export default async function AdminBookingsPage({
         )}
         {(bookings || []).map((b: any) => {
           const total = (b.booking_options || []).reduce((s: number, o: any) => s + Number(o.price), 0);
+          const isToday = b.status === "scheduled" && b.scheduled_date === today;
           return (
-            <div key={b.id} className={`${panelClass} p-4`}>
+            <div
+              key={b.id}
+              className={`${panelClass} p-4 ${isToday ? "!border-2 !border-orange-400 bg-orange-50/50" : ""}`}
+            >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
                   <p className="flex items-center gap-2">
                     <span className="font-mono font-semibold text-ink tracking-wide">{b.plate}</span>
                     <span className="text-ink-faint text-sm">— {b.site?.name}</span>
+                    {isToday && (
+                      <span className="text-xs font-semibold text-orange-600 uppercase tracking-wide">
+                        Aujourd'hui
+                      </span>
+                    )}
                   </p>
                   <p className="text-xs text-ink-faint mt-0.5">{b.brand_model || "—"}</p>
                   {b.attention_notes && (

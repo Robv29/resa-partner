@@ -10,6 +10,13 @@ export function isoWeek(date: Date = new Date()): string {
   return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
 }
 
+// Date du jour au format "YYYY-MM-DD", dans le fuseau France (le serveur de
+// déploiement tourne en UTC — sans ça "aujourd'hui" pourrait décaler d'un
+// jour selon l'heure).
+export function todayISO(): string {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date());
+}
+
 export function formatEUR(amount: number): string {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(amount);
 }
