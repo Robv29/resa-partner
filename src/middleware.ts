@@ -32,7 +32,10 @@ export async function middleware(request: NextRequest) {
 
   const path = request.nextUrl.pathname;
   const isPublic =
-    path.startsWith("/login") || path.startsWith("/api/cron") || path.startsWith("/set-password");
+    path.startsWith("/login") ||
+    path.startsWith("/api/cron") ||
+    path.startsWith("/set-password") ||
+    path.startsWith("/auth/confirm");
 
   if (!user && !isPublic) {
     const url = request.nextUrl.clone();
