@@ -24,13 +24,13 @@ export default function StatusTabs({ tabs }: { tabs: { key: string; label: strin
             {active && (
               <motion.span
                 layoutId="booking-tab-active-pill"
-                className="absolute inset-0 rounded-md bg-ink -z-10"
+                className="absolute inset-0 rounded-md bg-ink"
                 transition={{ type: "spring", stiffness: 420, damping: 34 }}
               />
             )}
-            {t.label}
+            <span className="relative">{t.label}</span>
             <span
-              className={`min-w-[1.25rem] px-1 text-center text-xs font-semibold rounded-full tabular-nums ${
+              className={`relative min-w-[1.25rem] px-1 text-center text-xs font-semibold rounded-full tabular-nums ${
                 active ? "bg-white/20 text-white" : "bg-black/[0.06] text-ink-soft"
               }`}
             >
