@@ -72,7 +72,7 @@ export default async function BillingPage({
           Total à facturer sur la période
         </span>
         <span className="text-2xl font-semibold text-ink tabular-nums">
-          <Counter value={grandTotal} format={formatEUR} />
+          <Counter value={grandTotal} format="eur" />
         </span>
       </Reveal>
 

@@ -159,7 +159,7 @@ export default async function AdminOverview() {
           <p className="text-xs text-ink-faint mb-2">CA facturable ce mois-ci</p>
           <div className="flex items-baseline gap-2">
             <p className="text-2xl font-semibold tabular-nums text-ink">
-              <Counter value={caCurrent} format={formatEUR} />
+              <Counter value={caCurrent} format="eur" />
             </p>
             <DeltaBadge current={caCurrent} previous={caPrevious} />
           </div>
@@ -178,7 +178,7 @@ export default async function AdminOverview() {
         <StaggerItem className="p-5">
           <p className="text-xs text-ink-faint mb-2">Panier moyen / véhicule</p>
           <p className="text-2xl font-semibold tabular-nums text-ink">
-            <Counter value={panierMoyen} format={formatEUR} />
+            <Counter value={panierMoyen} format="eur" />
           </p>
           <p className="text-xs text-ink-faint mt-1">
             {topOption ? (
@@ -217,7 +217,7 @@ export default async function AdminOverview() {
         <StaggerItem className="p-5">
           <Ban className="h-4 w-4 mb-3 text-ink-soft" strokeWidth={2} />
           <p className="text-2xl font-semibold tabular-nums text-ink">
-            <Counter value={refusalRate} format={(n) => `${n.toFixed(0)}%`} />
+            <Counter value={refusalRate} format="percent" />
           </p>
           <p className="text-xs text-ink-faint mt-1">Taux de refus/annulation (30j)</p>
         </StaggerItem>
