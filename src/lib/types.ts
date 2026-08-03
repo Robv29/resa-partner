@@ -13,9 +13,17 @@ export interface Site {
   id: string;
   name: string;
   address: string | null;
-  manager_id: string | null;
   active: boolean;
   notes: string | null;
+  reminder_day: number;
+}
+
+// Un ou plusieurs admins/managers rattachés à un site, qui reçoivent les
+// notifications de nouvelles plaques (remplace l'ancien manager_id unique).
+export interface SiteReferent {
+  id: string;
+  site_id: string;
+  profile_id: string;
 }
 
 export interface OptionCatalog {

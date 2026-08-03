@@ -26,7 +26,6 @@ export async function updateSite(formData: FormData) {
   const siteId = String(formData.get("site_id"));
   const name = String(formData.get("name") || "").trim();
   const address = String(formData.get("address") || "").trim();
-  const managerId = String(formData.get("manager_id") || "");
   const active = formData.get("active") === "on";
   const reminderDay = Number(formData.get("reminder_day") || 5);
 
@@ -35,12 +34,34 @@ export async function updateSite(formData: FormData) {
     .update({
       name,
       address: address || null,
-      manager_id: managerId || null,
       active,
       reminder_day: reminderDay >= 1 && reminderDay <= 7 ? reminderDay : 5,
     })
     .eq("id", siteId);
   if (error) throw new Error(error.message);
+
+  revalidatePath(`/admin/sites/${siteId}`);
+}
+
+// Un site peut avoir plusieurs référents (admin ou manager) qui reçoivent
+// les notifications de nouvelles plaques à planifier — remplace l'ancien
+// "manager référent" unique. On repart de zéro à chaque enregistrement :
+// plus simple et sans risque d'incohérence qu'un diff ligne à ligne.
+export async function updateSiteReferents(formData: FormData) {
+  await requireAdmin();
+  const supabase = createClient();
+  const siteId = String(formData.get("site_id"));
+  const referentIds = formData.getAll("referent_id").map(String).filter(Boolean);
+
+  const { error: deleteError } = await supabase.from("site_referents").delete().eq("site_id", siteId);
+  if (deleteError) throw new Error(deleteError.message);
+
+  if (referentIds.length > 0) {
+    const { error: insertError } = await supabase
+      .from("site_referents")
+      .insert(referentIds.map((profileId) => ({ site_id: siteId, profile_id: profileId })));
+    if (insertError) throw new Error(insertError.message);
+  }
 
   revalidatePath(`/admin/sites/${siteId}`);
 }

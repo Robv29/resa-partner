@@ -65,19 +65,21 @@ export async function createBooking(formData: FormData) {
     }
   }
 
-  // 3) notifier le manager du site + l'admin qu'une nouvelle plaque attend une planification
+  // 3) notifier tous les référents du site (admin ou manager, potentiellement
+  // plusieurs) + l'admin par défaut qu'une nouvelle plaque attend une planification
   try {
     const admin = createAdminClient();
-    const { data: site } = await admin
-      .from("sites")
-      .select("name, manager:profiles!sites_manager_id_fkey(email, full_name)")
-      .eq("id", profile.site_id)
-      .single();
+    const [{ data: site }, { data: referents }] = await Promise.all([
+      admin.from("sites").select("name").eq("id", profile.site_id).single(),
+      admin.from("site_referents").select("profile:profiles(email)").eq("site_id", profile.site_id),
+    ]);
 
     const recipients = new Set<string>();
     if (process.env.NOTIFY_ADMIN_EMAIL) recipients.add(process.env.NOTIFY_ADMIN_EMAIL);
-    const managerEmail = (site as any)?.manager?.email;
-    if (managerEmail) recipients.add(managerEmail);
+    for (const r of referents || []) {
+      const email = (r as any)?.profile?.email;
+      if (email) recipients.add(email);
+    }
 
     if (recipients.size > 0) {
       await resend.emails.send({

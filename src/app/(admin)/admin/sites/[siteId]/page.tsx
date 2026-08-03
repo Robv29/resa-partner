@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { ArrowLeft, UserRound } from "lucide-react";
+import { ArrowLeft, UserRound, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import {
   updateSite,
+  updateSiteReferents,
   upsertSiteOption,
   toggleSiteOption,
   inviteContact,
@@ -17,10 +18,11 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
   const supabase = createClient();
   const siteId = params.siteId;
 
-  const [{ data: site }, { data: managers }, { data: contacts }, { data: options }, { data: siteOptions }] =
+  const [{ data: site }, { data: team }, { data: currentReferents }, { data: contacts }, { data: options }, { data: siteOptions }] =
     await Promise.all([
       supabase.from("sites").select("*").eq("id", siteId).single(),
-      supabase.from("profiles").select("id, full_name").eq("role", "manager"),
+      supabase.from("profiles").select("id, full_name, role").in("role", ["admin", "manager"]).order("role"),
+      supabase.from("site_referents").select("profile_id").eq("site_id", siteId),
       supabase.from("profiles").select("id, full_name, email").eq("site_id", siteId).eq("role", "client"),
       supabase.from("options").select("*").eq("archived", false).order("sort_order"),
       supabase.from("site_options").select("*").eq("site_id", siteId),
@@ -29,6 +31,7 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
   if (!site) return <p className="text-ink-soft">Site introuvable.</p>;
 
   const siteOptionByOptionId = new Map((siteOptions || []).map((so: any) => [so.option_id, so]));
+  const referentIds = new Set((currentReferents || []).map((r: any) => r.profile_id));
 
   return (
     <div className="space-y-6">
@@ -52,15 +55,6 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
           <div>
             <label className={labelClass}>Adresse</label>
             <input name="address" defaultValue={site.address || ""} className={inputClass} />
-          </div>
-          <div>
-            <label className={labelClass}>Manager référent (reçoit les notifs)</label>
-            <select name="manager_id" defaultValue={site.manager_id || ""} className={inputClass}>
-              <option value="">— Aucun —</option>
-              {(managers || []).map((m: any) => (
-                <option key={m.id} value={m.id}>{m.full_name}</option>
-              ))}
-            </select>
           </div>
           <div>
             <label className={labelClass}>Jour d'envoi du rappel hebdomadaire</label>
@@ -123,6 +117,43 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
           </form>
         </div>
       </div>
+
+      {/* Référents */}
+      <form action={updateSiteReferents} className={`${panelClass} p-5 space-y-3`}>
+        <input type="hidden" name="site_id" value={siteId} />
+        <h2 className="font-medium text-sm text-ink-soft">Référents (reçoivent les notifications)</h2>
+        <p className="text-xs text-ink-faint">
+          Un ou plusieurs admins/managers qui reçoivent un email à chaque nouvelle plaque déposée par ce site. Aucune
+          limite : tu peux en mettre plusieurs, ou aucun.
+        </p>
+        <div className="space-y-1.5">
+          {(team || []).map((m: any) => (
+            <label
+              key={m.id}
+              className="flex items-center gap-2.5 text-sm border border-border rounded-md px-3 py-2 cursor-pointer hover:border-border-strong"
+            >
+              <input
+                type="checkbox"
+                name="referent_id"
+                value={m.id}
+                defaultChecked={referentIds.has(m.id)}
+                className="accent-accent h-4 w-4"
+              />
+              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-ink-faint shrink-0">
+                {m.role === "admin" ? (
+                  <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                ) : (
+                  <UserRound className="h-3.5 w-3.5" strokeWidth={2} />
+                )}
+              </span>
+              <span className="text-ink">{m.full_name}</span>
+              <span className="text-xs text-ink-faint capitalize ml-auto">{m.role}</span>
+            </label>
+          ))}
+          {(team || []).length === 0 && <p className="text-xs text-ink-faint">Aucun admin/manager enregistré.</p>}
+        </div>
+        <SubmitButton variant="primary" pendingText="Enregistrement…">Enregistrer les référents</SubmitButton>
+      </form>
 
       {/* Options & prix */}
       <div className={panelClass}>
