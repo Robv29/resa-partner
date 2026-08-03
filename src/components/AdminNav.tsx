@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
-import { LayoutGrid, CalendarClock, Building2, Receipt, Users } from "lucide-react";
+import { LayoutGrid, CalendarClock, Building2, Receipt, Users, Building } from "lucide-react";
 
-const nav = [
+const baseNav = [
   { href: "/admin", label: "Vue d'ensemble", Icon: LayoutGrid },
   { href: "/admin/bookings", label: "Planification", Icon: CalendarClock },
   { href: "/admin/sites", label: "Sites", Icon: Building2 },
@@ -13,8 +13,11 @@ const nav = [
   { href: "/admin/managers", label: "Équipe interne", Icon: Users },
 ];
 
-export default function AdminNav() {
+const superAdminNav = [{ href: "/admin/organizations", label: "Organisations", Icon: Building }];
+
+export default function AdminNav({ isSuperAdmin = false }: { isSuperAdmin?: boolean }) {
   const pathname = usePathname();
+  const nav = isSuperAdmin ? [...baseNav, ...superAdminNav] : baseNav;
 
   return (
     <nav className="flex gap-1 text-sm">

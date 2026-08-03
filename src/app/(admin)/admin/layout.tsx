@@ -1,8 +1,11 @@
 import { redirect } from "next/navigation";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import LogoutButton from "@/components/LogoutButton";
 import AdminNav from "@/components/AdminNav";
 import BrandBadge from "@/components/BrandBadge";
+import OrgSwitcher from "@/components/OrgSwitcher";
+import { VIEWING_ORG_COOKIE } from "@/lib/auth-guard";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
   const supabase = createClient();
@@ -11,8 +14,19 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   } = await supabase.auth.getUser();
   if (!user) redirect("/login");
 
-  const { data: profile } = await supabase.from("profiles").select("role, full_name").eq("id", user.id).single();
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("role, full_name, organization_id")
+    .eq("id", user.id)
+    .single();
   if (!profile || profile.role === "client") redirect("/dashboard");
+
+  const isSuperAdmin = profile.role === "super_admin";
+  const organizations = isSuperAdmin
+    ? (await supabase.from("organizations").select("id, name").order("name")).data || []
+    : [];
+  const viewingCookie = cookies().get(VIEWING_ORG_COOKIE)?.value;
+  const currentOrgId = isSuperAdmin ? (viewingCookie === "__all__" ? null : viewingCookie || profile.organization_id) : null;
 
   const initials = profile.full_name
     .split(" ")
@@ -30,9 +44,10 @@ export default async function AdminLayout({ children }: { children: React.ReactN
               <BrandBadge size={28} />
               <span className="font-semibold text-white text-sm tracking-[-0.01em]">Résa Partner</span>
             </div>
-            <AdminNav />
+            <AdminNav isSuperAdmin={isSuperAdmin} />
           </div>
           <div className="flex items-center gap-3 text-sm">
+            {isSuperAdmin && <OrgSwitcher organizations={organizations} currentOrgId={currentOrgId} />}
             <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-white text-xs font-semibold">
               {initials}
             </span>

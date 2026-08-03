@@ -7,14 +7,29 @@ import { panelClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
 import Reveal, { StaggerTBody, StaggerRow } from "@/components/motion/Reveal";
 import Counter from "@/components/motion/Counter";
+import { requireAdmin, getScopedOrgId } from "@/lib/auth-guard";
 
 export default async function BillingPage({
   searchParams,
 }: {
   searchParams: { site?: string; month?: string };
 }) {
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
+
+  if (!orgId) {
+    return (
+      <div className="space-y-5">
+        <PageHeader title="Facturation" description="Détail par option, prêt à copier pour ta facture." />
+        <div className={`${panelClass} p-8 text-center text-sm text-ink-faint`}>
+          Sélectionne une organisation dans le sélecteur en haut de page pour voir sa facturation.
+        </div>
+      </div>
+    );
+  }
+
   const supabase = createClient();
-  const { data: sites } = await supabase.from("sites").select("id, name").order("name");
+  const { data: sites } = await supabase.from("sites").select("id, name").eq("organization_id", orgId).order("name");
 
   const months = lastMonths(12);
   const currentMonth = searchParams.month || months[0].value;

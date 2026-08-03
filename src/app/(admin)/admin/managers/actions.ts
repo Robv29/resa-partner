@@ -2,16 +2,19 @@
 
 import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/auth-guard";
+import { requireAdmin, getScopedOrgId, assertProfileInOrg } from "@/lib/auth-guard";
 
 export async function inviteManager(formData: FormData) {
-  // Réservé à l'admin : cette action peut créer un compte "admin" pour
-  // quelqu'un d'autre, donc ne jamais l'ouvrir aux managers.
-  await requireAdmin();
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
+  if (!orgId) throw new Error("Sélectionne une organisation avant d'inviter un membre");
 
   const email = String(formData.get("email") || "").trim();
   const fullName = String(formData.get("full_name") || "").trim();
-  const role = String(formData.get("role") || "manager") as "manager" | "admin";
+  // Un admin ne peut créer que des managers dans sa propre organisation. La
+  // création d'un compte "admin" (nouvelle organisation) passe exclusivement
+  // par le lien d'inscription super_admin (/admin/organizations), qui
+  // capture aussi les infos entreprise et, plus tard, le paiement Stripe.
   if (!email || !fullName) throw new Error("Email et nom requis");
 
   const admin = createAdminClient();
@@ -24,10 +27,11 @@ export async function inviteManager(formData: FormData) {
 
   const { error: profileError } = await admin.from("profiles").insert({
     id: invited.user.id,
-    role,
+    role: "manager",
     full_name: fullName,
     email,
     site_id: null,
+    organization_id: orgId,
   });
   if (profileError) throw new Error(profileError.message);
 
@@ -35,8 +39,13 @@ export async function inviteManager(formData: FormData) {
 }
 
 export async function removeManager(formData: FormData) {
-  await requireAdmin();
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
   const managerId = String(formData.get("manager_id"));
+  // Le client service role bypasse RLS : on revérifie que ce compte
+  // appartient bien à l'organisation sur laquelle l'appelant agit, sans quoi
+  // n'importe quel admin pourrait supprimer le compte de n'importe qui.
+  await assertProfileInOrg(managerId, orgId);
   const admin = createAdminClient();
   await admin.auth.admin.deleteUser(managerId);
   revalidatePath("/admin/managers");

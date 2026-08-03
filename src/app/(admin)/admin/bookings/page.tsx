@@ -10,12 +10,27 @@ import AdminNewBookingForm from "./AdminNewBookingForm";
 import StatusTabs from "@/components/StatusTabs";
 import MarkDoneButton from "@/components/MarkDoneButton";
 import { StaggerGroup, StaggerItem } from "@/components/motion/Reveal";
+import { requireAdmin, getScopedOrgId } from "@/lib/auth-guard";
 
 export default async function AdminBookingsPage({
   searchParams,
 }: {
   searchParams: { status?: string };
 }) {
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
+
+  if (!orgId) {
+    return (
+      <div className="space-y-5">
+        <PageHeader title="Planification" description="Assigne un jour et une heure à chaque véhicule déposé par les sites." />
+        <div className={`${panelClass} p-8 text-center text-sm text-ink-faint`}>
+          Sélectionne une organisation dans le sélecteur en haut de page pour voir sa planification.
+        </div>
+      </div>
+    );
+  }
+
   const supabase = createClient();
   const status = searchParams.status || "pending";
 
@@ -26,6 +41,7 @@ export default async function AdminBookingsPage({
     .select(
       "id, site_id, plate, brand_model, attention_notes, status, scheduled_date, scheduled_time, created_at, site:sites(name), booking_options(option_id, option_name, price)"
     )
+    .eq("organization_id", orgId)
     // Tri chronologique du plus récent au plus ancien : d'abord par jour
     // planifié (les demandes en attente, sans date, passent en dernier et se
     // trient alors par date de dépôt, la plus récente en premier).
@@ -47,13 +63,14 @@ export default async function AdminBookingsPage({
     query,
     supabase
       .from("site_options")
-      .select("id, site_id, option_id, price, option:options(id, name, is_base)")
-      .eq("active", true),
-    supabase.from("sites").select("id, name").eq("active", true).order("name"),
-    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "pending"),
-    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "scheduled"),
-    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("status", "done"),
-    supabase.from("bookings").select("*", { count: "exact", head: true }),
+      .select("id, site_id, option_id, price, option:options(id, name, is_base), site:sites!inner(organization_id)")
+      .eq("active", true)
+      .eq("site.organization_id", orgId),
+    supabase.from("sites").select("id, name").eq("active", true).eq("organization_id", orgId).order("name"),
+    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("organization_id", orgId).eq("status", "pending"),
+    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("organization_id", orgId).eq("status", "scheduled"),
+    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("organization_id", orgId).eq("status", "done"),
+    supabase.from("bookings").select("*", { count: "exact", head: true }).eq("organization_id", orgId),
   ]);
 
   // Options disponibles par site, pour proposer un ajout ciblé sur chaque

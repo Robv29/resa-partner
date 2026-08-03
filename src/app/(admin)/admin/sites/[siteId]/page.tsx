@@ -14,22 +14,32 @@ import { panelClass, inputClass, labelClass, buttonClass } from "@/components/ui
 import SubmitButton from "@/components/ui/SubmitButton";
 import { WEEKDAY_LABELS } from "@/lib/format";
 import Reveal, { StaggerGroup, StaggerItem, StaggerTBody, StaggerRow } from "@/components/motion/Reveal";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export default async function SiteDetailPage({ params }: { params: { siteId: string } }) {
+  await requireAdmin();
   const supabase = createClient();
   const siteId = params.siteId;
 
-  const [{ data: site }, { data: team }, { data: currentReferents }, { data: contacts }, { data: options }, { data: siteOptions }] =
+  // La RLS filtre déjà automatiquement : un admin/manager d'une autre
+  // organisation ne recevra jamais cette ligne (site = null ci-dessous),
+  // un super_admin peut ouvrir n'importe quel site (intervention complète).
+  const { data: site } = await supabase.from("sites").select("*").eq("id", siteId).single();
+  if (!site) return <p className="text-ink-soft">Site introuvable.</p>;
+
+  const [{ data: team }, { data: currentReferents }, { data: contacts }, { data: options }, { data: siteOptions }] =
     await Promise.all([
-      supabase.from("sites").select("*").eq("id", siteId).single(),
-      supabase.from("profiles").select("id, full_name, role").in("role", ["admin", "manager"]).order("role"),
+      supabase
+        .from("profiles")
+        .select("id, full_name, role")
+        .eq("organization_id", site.organization_id)
+        .in("role", ["admin", "manager"])
+        .order("role"),
       supabase.from("site_referents").select("profile_id").eq("site_id", siteId),
       supabase.from("profiles").select("id, full_name, email").eq("site_id", siteId).eq("role", "client"),
-      supabase.from("options").select("*").eq("archived", false).order("sort_order"),
+      supabase.from("options").select("*").eq("organization_id", site.organization_id).eq("archived", false).order("sort_order"),
       supabase.from("site_options").select("*").eq("site_id", siteId),
     ]);
-
-  if (!site) return <p className="text-ink-soft">Site introuvable.</p>;
 
   const siteOptionByOptionId = new Map((siteOptions || []).map((so: any) => [so.option_id, so]));
   const referentIds = new Set((currentReferents || []).map((r: any) => r.profile_id));

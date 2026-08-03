@@ -16,6 +16,8 @@ import { panelClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
 import { StaggerGroup, StaggerItem, StaggerTBody, StaggerRow } from "@/components/motion/Reveal";
 import Counter from "@/components/motion/Counter";
+import { requireAdmin, getScopedOrgId } from "@/lib/auth-guard";
+import OrganizationsOverview from "./OrganizationsOverview";
 
 // Variation en % entre deux valeurs, avec un statut à part pour "pas de
 // référence" (mois précédent à 0) plutôt qu'un pourcentage absurde.
@@ -43,6 +45,15 @@ function DeltaBadge({ current, previous, invert = false }: { current: number; pr
 }
 
 export default async function AdminOverview() {
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
+
+  // super_admin sans organisation sélectionnée ("toutes les organisations") :
+  // vue business globale plutôt que le tableau de bord d'un seul compte.
+  if (!orgId) {
+    return <OrganizationsOverview />;
+  }
+
   const supabase = createClient();
 
   const today = todayISO();
@@ -62,32 +73,41 @@ export default async function AdminOverview() {
     { data: donePrevious },
     { data: recentOutcomes },
   ] = await Promise.all([
-    supabase.from("sites").select("*", { count: "exact", head: true }).eq("active", true),
-    supabase.from("sites").select("id, name").eq("active", true).order("name"),
+    supabase.from("sites").select("*", { count: "exact", head: true }).eq("active", true).eq("organization_id", orgId),
+    supabase.from("sites").select("id, name").eq("active", true).eq("organization_id", orgId).order("name"),
     supabase
       .from("bookings")
       .select("id, plate, brand_model, created_at, site_id, site:sites(name)")
+      .eq("organization_id", orgId)
       .eq("status", "pending")
       .order("created_at", { ascending: true }),
     supabase
       .from("bookings")
       .select("*", { count: "exact", head: true })
+      .eq("organization_id", orgId)
       .eq("status", "scheduled")
       .gte("scheduled_date", today)
       .lte("scheduled_date", in7Days),
     supabase
       .from("bookings")
       .select("id, site_id, booking_options(option_name, price)")
+      .eq("organization_id", orgId)
       .eq("status", "done")
       .gte("scheduled_date", curStart)
       .lt("scheduled_date", curEnd),
     supabase
       .from("bookings")
       .select("id, booking_options(price)")
+      .eq("organization_id", orgId)
       .eq("status", "done")
       .gte("scheduled_date", prevStart)
       .lt("scheduled_date", prevEnd),
-    supabase.from("bookings").select("status").in("status", ["done", "cancelled"]).gte("created_at", thirtyDaysAgo),
+    supabase
+      .from("bookings")
+      .select("status")
+      .eq("organization_id", orgId)
+      .in("status", ["done", "cancelled"])
+      .gte("created_at", thirtyDaysAgo),
   ]);
 
   // CA + volume du mois en cours, comparés au mois précédent

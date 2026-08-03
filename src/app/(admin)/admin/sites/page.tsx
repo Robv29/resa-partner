@@ -5,10 +5,29 @@ import { createSite } from "./actions";
 import { panelClass, inputClass, labelClass, buttonClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
 import Reveal, { StaggerGroup, StaggerItem } from "@/components/motion/Reveal";
+import { requireAdmin, getScopedOrgId } from "@/lib/auth-guard";
 
 export default async function AdminSitesPage() {
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
+
+  if (!orgId) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Sites clients" description="Concessions rattachées, contacts et tarifs par option." />
+        <div className={`${panelClass} p-8 text-center text-sm text-ink-faint`}>
+          Sélectionne une organisation dans le sélecteur en haut de page pour voir ses sites.
+        </div>
+      </div>
+    );
+  }
+
   const supabase = createClient();
-  const { data: sites } = await supabase.from("sites").select("id, name, address, active").order("name");
+  const { data: sites } = await supabase
+    .from("sites")
+    .select("id, name, address, active")
+    .eq("organization_id", orgId)
+    .order("name");
 
   return (
     <div className="space-y-6">

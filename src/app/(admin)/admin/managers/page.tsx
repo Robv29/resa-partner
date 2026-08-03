@@ -5,12 +5,28 @@ import { panelClass, inputClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
 import SubmitButton from "@/components/ui/SubmitButton";
 import Reveal, { StaggerGroup, StaggerItem } from "@/components/motion/Reveal";
+import { requireAdmin, getScopedOrgId } from "@/lib/auth-guard";
 
 export default async function ManagersPage() {
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
+
+  if (!orgId) {
+    return (
+      <div className="space-y-6">
+        <PageHeader title="Équipe interne" description="Managers et admins qui reçoivent les notifications de planification." />
+        <div className={`${panelClass} p-8 text-center text-sm text-ink-faint`}>
+          Sélectionne une organisation dans le sélecteur en haut de page pour voir son équipe.
+        </div>
+      </div>
+    );
+  }
+
   const supabase = createClient();
   const { data: team } = await supabase
     .from("profiles")
     .select("id, full_name, email, role")
+    .eq("organization_id", orgId)
     .in("role", ["admin", "manager"])
     .order("role");
 
@@ -63,10 +79,10 @@ export default async function ManagersPage() {
           <form action={inviteManager} className={`${panelClass} p-4 space-y-3`}>
             <input name="full_name" placeholder="Nom" required className={inputClass} />
             <input name="email" type="email" placeholder="Email" required className={inputClass} />
-            <select name="role" className={inputClass}>
-              <option value="manager">Manager</option>
-              <option value="admin">Admin</option>
-            </select>
+            <p className="text-xs text-ink-faint">
+              Rejoint comme manager de cette organisation. La création d'un compte admin (nouvelle organisation) se
+              fait depuis la console Résa Partner.
+            </p>
             <SubmitButton variant="primary" className="w-full" pendingText="Envoi de l'invitation…">
               Inviter
             </SubmitButton>

@@ -4,16 +4,22 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { requireAdmin } from "@/lib/auth-guard";
+import { requireAdmin, getScopedOrgId, assertSiteInOrg } from "@/lib/auth-guard";
 
 export async function createSite(formData: FormData) {
-  await requireAdmin();
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
+  if (!orgId) throw new Error("Sélectionne une organisation avant de créer un site");
   const supabase = createClient();
   const name = String(formData.get("name") || "").trim();
   const address = String(formData.get("address") || "").trim();
   if (!name) throw new Error("Nom du site requis");
 
-  const { data, error } = await supabase.from("sites").insert({ name, address: address || null }).select("id").single();
+  const { data, error } = await supabase
+    .from("sites")
+    .insert({ name, address: address || null, organization_id: orgId })
+    .select("id")
+    .single();
   if (error) throw new Error(error.message);
 
   revalidatePath("/admin/sites");
@@ -70,7 +76,9 @@ export async function updateSiteReferents(formData: FormData) {
 // tous les sites, à activer/tarifer site par site) directement depuis la
 // fiche site, sans repasser par un autre écran.
 export async function createOption(formData: FormData) {
-  await requireAdmin();
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
+  if (!orgId) throw new Error("Sélectionne une organisation");
   const supabase = createClient();
   const siteId = String(formData.get("site_id"));
   const name = String(formData.get("new_option_name") || "").trim();
@@ -79,7 +87,7 @@ export async function createOption(formData: FormData) {
 
   const { data: option, error } = await supabase
     .from("options")
-    .insert({ name })
+    .insert({ name, organization_id: orgId })
     .select("id")
     .single();
   if (error) throw new Error(error.message);
@@ -125,8 +133,12 @@ export async function toggleSiteOption(formData: FormData) {
 
 // Invite un contact client rattaché à ce site (passe par /api/invite)
 export async function inviteContact(formData: FormData) {
-  await requireAdmin();
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
   const siteId = String(formData.get("site_id"));
+  // Le client service role bypasse RLS : on revérifie nous-mêmes que ce site
+  // appartient bien à l'organisation sur laquelle l'appelant agit.
+  await assertSiteInOrg(siteId, orgId);
   const email = String(formData.get("email") || "").trim();
   const fullName = String(formData.get("full_name") || "").trim();
   if (!email || !fullName) throw new Error("Email et nom requis");
@@ -139,12 +151,15 @@ export async function inviteContact(formData: FormData) {
   });
   if (inviteError || !invited?.user) throw new Error(inviteError?.message || "Échec de l'invitation");
 
+  const { data: site } = await admin.from("sites").select("organization_id").eq("id", siteId).single();
+
   const { error: profileError } = await admin.from("profiles").insert({
     id: invited.user.id,
     role: "client",
     full_name: fullName,
     email,
     site_id: siteId,
+    organization_id: site?.organization_id ?? orgId,
   });
   if (profileError) throw new Error(profileError.message);
 
@@ -152,9 +167,11 @@ export async function inviteContact(formData: FormData) {
 }
 
 export async function removeContact(formData: FormData) {
-  await requireAdmin();
+  const auth = await requireAdmin();
+  const orgId = await getScopedOrgId(auth);
   const siteId = String(formData.get("site_id"));
   const contactId = String(formData.get("contact_id"));
+  await assertSiteInOrg(siteId, orgId);
 
   const admin = createAdminClient();
   await admin.auth.admin.deleteUser(contactId);
