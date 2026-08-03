@@ -1,7 +1,8 @@
 import Image from "next/image";
 import { TriangleAlert } from "lucide-react";
 import { signIn } from "./actions";
-import { inputClass, labelClass, buttonClass } from "@/components/ui";
+import { inputClass, labelClass } from "@/components/ui";
+import SubmitButton from "@/components/ui/SubmitButton";
 
 export default function LoginPage({ searchParams }: { searchParams: { error?: string } }) {
   return (
@@ -41,10 +42,15 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
             </p>
           )}
 
-          <button type="submit" className={buttonClass("primary", "w-full py-2.5")}>
+          <SubmitButton variant="primary" className="w-full py-2.5" pendingText="Connexion…">
             Se connecter
-          </button>
+          </SubmitButton>
         </form>
+        <div className="flex items-center justify-between mt-3">
+          <a href="/forgot-password" className="text-xs text-ink-faint hover:text-ink-soft underline">
+            Mot de passe oublié ?
+          </a>
+        </div>
         <p className="text-xs text-ink-faint mt-4 text-center">
           Pas encore de compte ? Contactez VGS Autos pour recevoir votre invitation.
         </p>

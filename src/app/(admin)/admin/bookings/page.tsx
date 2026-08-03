@@ -1,10 +1,11 @@
-import { TriangleAlert, CheckCheck, CarFront, Trash2 } from "lucide-react";
+import { TriangleAlert, CheckCheck, CarFront, Trash2, Ban } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR, todayISO } from "@/lib/format";
 import { scheduleBooking, markDone, cancelBooking, addBookingOption } from "./actions";
-import { panelClass, inputClass, buttonClass } from "@/components/ui";
+import { panelClass, inputClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
+import SubmitButton from "@/components/ui/SubmitButton";
 import AdminNewBookingForm from "./AdminNewBookingForm";
 
 export default async function AdminBookingsPage({
@@ -171,10 +172,19 @@ export default async function AdminBookingsPage({
                     <label className="block text-xs text-ink-faint mb-1">Heure</label>
                     <input type="time" name="scheduled_time" required className={`${inputClass} py-1.5`} />
                   </div>
-                  <button className={buttonClass("primary", "py-1.5")}>Planifier</button>
-                  <button formAction={cancelBooking} formNoValidate className={buttonClass("danger", "py-1.5")}>
-                    Annuler
-                  </button>
+                  <SubmitButton variant="primary" className="py-1.5" pendingText="Planification…">
+                    Planifier
+                  </SubmitButton>
+                  <SubmitButton
+                    variant="danger"
+                    className="py-1.5"
+                    formAction={cancelBooking}
+                    formNoValidate
+                    confirmMessage="Refuser cette demande ? Le site devra la redéposer si besoin d'un nouveau passage."
+                  >
+                    <Ban className="h-4 w-4" strokeWidth={2} />
+                    Refuser
+                  </SubmitButton>
                 </form>
               )}
 
@@ -187,17 +197,26 @@ export default async function AdminBookingsPage({
                     <div className="flex items-center gap-4">
                       <form action={markDone}>
                         <input type="hidden" name="booking_id" value={b.id} />
-                        <button className="flex items-center gap-1.5 text-sm text-emerald-700 font-medium hover:text-emerald-800">
+                        <SubmitButton
+                          variant="ghost"
+                          className="!px-0 !py-0 text-emerald-700 font-medium hover:text-emerald-800 hover:bg-transparent"
+                          pendingText="…"
+                        >
                           <CheckCheck className="h-4 w-4" strokeWidth={2} />
                           Marquer terminé
-                        </button>
+                        </SubmitButton>
                       </form>
                       <form action={cancelBooking}>
                         <input type="hidden" name="booking_id" value={b.id} />
-                        <button className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700">
+                        <SubmitButton
+                          variant="ghost"
+                          className="!px-0 !py-0 text-red-600 hover:text-red-700 hover:bg-transparent"
+                          pendingText="…"
+                          confirmMessage="Supprimer ce véhicule planifié ?"
+                        >
                           <Trash2 className="h-4 w-4" strokeWidth={2} />
                           Supprimer
-                        </button>
+                        </SubmitButton>
                       </form>
                     </div>
                   </div>
@@ -218,7 +237,9 @@ export default async function AdminBookingsPage({
                             ))}
                           </select>
                         </div>
-                        <button className={buttonClass("secondary", "py-1.5")}>Ajouter</button>
+                        <SubmitButton variant="secondary" className="py-1.5" pendingText="Ajout…">
+                          Ajouter
+                        </SubmitButton>
                       </form>
                     );
                   })()}
@@ -233,10 +254,15 @@ export default async function AdminBookingsPage({
                   </p>
                   <form action={cancelBooking}>
                     <input type="hidden" name="booking_id" value={b.id} />
-                    <button className="flex items-center gap-1.5 text-sm text-red-600 hover:text-red-700">
+                    <SubmitButton
+                      variant="ghost"
+                      className="!px-0 !py-0 text-red-600 hover:text-red-700 hover:bg-transparent"
+                      pendingText="…"
+                      confirmMessage="Supprimer ce véhicule terminé ? Il disparaîtra aussi de la facturation."
+                    >
                       <Trash2 className="h-4 w-4" strokeWidth={2} />
                       Supprimer
-                    </button>
+                    </SubmitButton>
                   </form>
                 </div>
               )}

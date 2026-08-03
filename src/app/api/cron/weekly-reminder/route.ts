@@ -2,11 +2,14 @@ import { NextRequest, NextResponse } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resend, FROM } from "@/lib/resend";
 import { weeklyReminderEmail } from "@/lib/email-templates";
-import { isoWeek } from "@/lib/format";
+import { isoWeek, todayISOWeekday } from "@/lib/format";
 
-// Appelé chaque vendredi matin par le Vercel Cron défini dans vercel.json.
-// Vercel ajoute automatiquement l'en-tête "Authorization: Bearer $CRON_SECRET"
-// si la variable d'env CRON_SECRET est configurée sur le projet.
+// Appelé chaque jour par le Vercel Cron défini dans vercel.json (le jour
+// exact d'envoi dépend désormais de sites.reminder_day, réglable par site
+// dans sa fiche — auparavant tous les sites recevaient le rappel le même
+// vendredi). Vercel ajoute automatiquement l'en-tête
+// "Authorization: Bearer $CRON_SECRET" si la variable d'env CRON_SECRET est
+// configurée sur le projet.
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");
   if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
@@ -16,8 +19,13 @@ export async function GET(req: NextRequest) {
   const admin = createAdminClient();
   const week = isoWeek();
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "";
+  const weekday = todayISOWeekday();
 
-  const { data: sites } = await admin.from("sites").select("id, name").eq("active", true);
+  const { data: sites } = await admin
+    .from("sites")
+    .select("id, name")
+    .eq("active", true)
+    .eq("reminder_day", weekday);
 
   const results: { site: string; sent: number; skipped?: boolean }[] = [];
 

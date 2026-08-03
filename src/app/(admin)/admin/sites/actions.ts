@@ -4,8 +4,10 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function createSite(formData: FormData) {
+  await requireAdmin();
   const supabase = createClient();
   const name = String(formData.get("name") || "").trim();
   const address = String(formData.get("address") || "").trim();
@@ -19,16 +21,24 @@ export async function createSite(formData: FormData) {
 }
 
 export async function updateSite(formData: FormData) {
+  await requireAdmin();
   const supabase = createClient();
   const siteId = String(formData.get("site_id"));
   const name = String(formData.get("name") || "").trim();
   const address = String(formData.get("address") || "").trim();
   const managerId = String(formData.get("manager_id") || "");
   const active = formData.get("active") === "on";
+  const reminderDay = Number(formData.get("reminder_day") || 5);
 
   const { error } = await supabase
     .from("sites")
-    .update({ name, address: address || null, manager_id: managerId || null, active })
+    .update({
+      name,
+      address: address || null,
+      manager_id: managerId || null,
+      active,
+      reminder_day: reminderDay >= 1 && reminderDay <= 7 ? reminderDay : 5,
+    })
     .eq("id", siteId);
   if (error) throw new Error(error.message);
 
@@ -39,6 +49,7 @@ export async function updateSite(formData: FormData) {
 // tous les sites, à activer/tarifer site par site) directement depuis la
 // fiche site, sans repasser par un autre écran.
 export async function createOption(formData: FormData) {
+  await requireAdmin();
   const supabase = createClient();
   const siteId = String(formData.get("site_id"));
   const name = String(formData.get("new_option_name") || "").trim();
@@ -64,6 +75,7 @@ export async function createOption(formData: FormData) {
 
 // Ajoute une option du catalogue au site avec un prix (upsert)
 export async function upsertSiteOption(formData: FormData) {
+  await requireAdmin();
   const supabase = createClient();
   const siteId = String(formData.get("site_id"));
   const optionId = String(formData.get("option_id"));
@@ -78,6 +90,7 @@ export async function upsertSiteOption(formData: FormData) {
 }
 
 export async function toggleSiteOption(formData: FormData) {
+  await requireAdmin();
   const supabase = createClient();
   const siteOptionId = String(formData.get("site_option_id"));
   const siteId = String(formData.get("site_id"));
@@ -91,6 +104,7 @@ export async function toggleSiteOption(formData: FormData) {
 
 // Invite un contact client rattaché à ce site (passe par /api/invite)
 export async function inviteContact(formData: FormData) {
+  await requireAdmin();
   const siteId = String(formData.get("site_id"));
   const email = String(formData.get("email") || "").trim();
   const fullName = String(formData.get("full_name") || "").trim();
@@ -117,6 +131,7 @@ export async function inviteContact(formData: FormData) {
 }
 
 export async function removeContact(formData: FormData) {
+  await requireAdmin();
   const siteId = String(formData.get("site_id"));
   const contactId = String(formData.get("contact_id"));
 

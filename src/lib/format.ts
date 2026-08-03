@@ -17,6 +17,25 @@ export function todayISO(): string {
   return new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris" }).format(new Date());
 }
 
+// Jour ISO du jour (1=lundi ... 7=dimanche), dans le fuseau France — utilisé
+// par le cron de relance quotidien pour savoir quels sites notifier
+// aujourd'hui (chaque site a son propre jour via sites.reminder_day).
+export function todayISOWeekday(): number {
+  const weekday = new Intl.DateTimeFormat("en-US", { timeZone: "Europe/Paris", weekday: "short" }).format(new Date());
+  const map: Record<string, number> = { Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6, Sun: 7 };
+  return map[weekday] ?? 5;
+}
+
+export const WEEKDAY_LABELS: { value: number; label: string }[] = [
+  { value: 1, label: "Lundi" },
+  { value: 2, label: "Mardi" },
+  { value: 3, label: "Mercredi" },
+  { value: 4, label: "Jeudi" },
+  { value: 5, label: "Vendredi" },
+  { value: 6, label: "Samedi" },
+  { value: 7, label: "Dimanche" },
+];
+
 export function formatEUR(amount: number): string {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(amount);
 }

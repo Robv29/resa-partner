@@ -1,15 +1,13 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { createClient } from "@/lib/supabase/server";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { requireAdmin } from "@/lib/auth-guard";
 
 export async function inviteManager(formData: FormData) {
-  const supabase = createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) throw new Error("Non authentifié");
+  // Réservé à l'admin : cette action peut créer un compte "admin" pour
+  // quelqu'un d'autre, donc ne jamais l'ouvrir aux managers.
+  await requireAdmin();
 
   const email = String(formData.get("email") || "").trim();
   const fullName = String(formData.get("full_name") || "").trim();
@@ -37,6 +35,7 @@ export async function inviteManager(formData: FormData) {
 }
 
 export async function removeManager(formData: FormData) {
+  await requireAdmin();
   const managerId = String(formData.get("manager_id"));
   const admin = createAdminClient();
   await admin.auth.admin.deleteUser(managerId);

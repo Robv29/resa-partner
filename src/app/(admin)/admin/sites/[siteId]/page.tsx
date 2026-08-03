@@ -10,6 +10,8 @@ import {
   createOption,
 } from "../actions";
 import { panelClass, inputClass, labelClass, buttonClass } from "@/components/ui";
+import SubmitButton from "@/components/ui/SubmitButton";
+import { WEEKDAY_LABELS } from "@/lib/format";
 
 export default async function SiteDetailPage({ params }: { params: { siteId: string } }) {
   const supabase = createClient();
@@ -60,11 +62,24 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
               ))}
             </select>
           </div>
+          <div>
+            <label className={labelClass}>Jour d'envoi du rappel hebdomadaire</label>
+            <select name="reminder_day" defaultValue={site.reminder_day ?? 5} className={inputClass}>
+              {WEEKDAY_LABELS.map((d) => (
+                <option key={d.value} value={d.value}>{d.label}</option>
+              ))}
+            </select>
+            <p className="text-xs text-ink-faint mt-1">
+              Email automatique envoyé aux contacts de ce site pour leur rappeler de renseigner les plaques de la
+              semaine prochaine. À prévoir au moins 3 jours avant le passage : une plaque déposée trop tard peut être
+              refusée depuis la planification.
+            </p>
+          </div>
           <label className="flex items-center gap-2 text-sm text-ink">
             <input type="checkbox" name="active" defaultChecked={site.active} className="accent-accent h-4 w-4" />
             Site actif
           </label>
-          <button className={buttonClass("primary")}>Enregistrer</button>
+          <SubmitButton variant="primary" pendingText="Enregistrement…">Enregistrer</SubmitButton>
         </form>
 
         {/* Contacts */}
@@ -85,7 +100,14 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
                 <form action={removeContact}>
                   <input type="hidden" name="site_id" value={siteId} />
                   <input type="hidden" name="contact_id" value={c.id} />
-                  <button className="text-xs text-red-600 hover:text-red-700">Retirer</button>
+                  <SubmitButton
+                    variant="ghost"
+                    className="!px-0 !py-0 text-xs text-red-600 hover:text-red-700 hover:bg-transparent"
+                    pendingText="…"
+                    confirmMessage={`Retirer l'accès de ${c.full_name} ? Son compte sera supprimé.`}
+                  >
+                    Retirer
+                  </SubmitButton>
                 </form>
               </div>
             ))}
@@ -95,9 +117,9 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
             <input type="hidden" name="site_id" value={siteId} />
             <input name="full_name" placeholder="Nom du contact" required className={inputClass} />
             <input name="email" type="email" placeholder="Email" required className={inputClass} />
-            <button className={buttonClass("secondary", "w-full")}>
+            <SubmitButton variant="secondary" className="w-full" pendingText="Envoi de l'invitation…">
               Inviter (envoi email de création de compte)
-            </button>
+            </SubmitButton>
           </form>
         </div>
       </div>
@@ -135,9 +157,13 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
                         placeholder="0.00"
                         className={`${inputClass} w-24 py-1.5`}
                       />
-                      <button className="text-xs text-accent-ink font-medium hover:underline">
+                      <SubmitButton
+                        variant="ghost"
+                        className="!px-0 !py-0 text-xs text-accent-ink font-medium hover:underline hover:bg-transparent"
+                        pendingText="…"
+                      >
                         {so ? "Mettre à jour" : "Activer"}
-                      </button>
+                      </SubmitButton>
                     </form>
                   </td>
                   <td className="py-2.5 px-5">
@@ -173,7 +199,7 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
             <label className={labelClass}>Prix (€)</label>
             <input type="number" step="0.01" min="0" name="new_option_price" placeholder="0.00" className={inputClass} />
           </div>
-          <button className={buttonClass("secondary")}>Créer et activer ici</button>
+          <SubmitButton variant="secondary" pendingText="Création…">Créer et activer ici</SubmitButton>
         </form>
         <p className="text-xs text-ink-faint px-5 py-4">
           Le tarif de chaque option est propre à ce site et n'affecte aucun autre site. Une option créée ici rejoint

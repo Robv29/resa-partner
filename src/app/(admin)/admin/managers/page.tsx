@@ -1,8 +1,9 @@
 import { UserRound, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { inviteManager, removeManager } from "./actions";
-import { panelClass, inputClass, buttonClass } from "@/components/ui";
+import { panelClass, inputClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
+import SubmitButton from "@/components/ui/SubmitButton";
 
 export default async function ManagersPage() {
   const supabase = createClient();
@@ -38,7 +39,14 @@ export default async function ManagersPage() {
                 {m.role !== "admin" && (
                   <form action={removeManager}>
                     <input type="hidden" name="manager_id" value={m.id} />
-                    <button className="text-xs text-red-600 hover:text-red-700">Retirer</button>
+                    <SubmitButton
+                      variant="ghost"
+                      className="!px-0 !py-0 text-xs text-red-600 hover:text-red-700 hover:bg-transparent"
+                      pendingText="…"
+                      confirmMessage={`Retirer l'accès de ${m.full_name} ? Son compte sera supprimé.`}
+                    >
+                      Retirer
+                    </SubmitButton>
                   </form>
                 )}
               </div>
@@ -55,7 +63,9 @@ export default async function ManagersPage() {
               <option value="manager">Manager</option>
               <option value="admin">Admin</option>
             </select>
-            <button className={buttonClass("primary", "w-full")}>Inviter</button>
+            <SubmitButton variant="primary" className="w-full" pendingText="Envoi de l'invitation…">
+              Inviter
+            </SubmitButton>
           </form>
         </div>
       </div>
