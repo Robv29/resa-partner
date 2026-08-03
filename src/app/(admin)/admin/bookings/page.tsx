@@ -23,10 +23,11 @@ export default async function AdminBookingsPage({
     .select(
       "id, site_id, plate, brand_model, attention_notes, status, scheduled_date, scheduled_time, created_at, site:sites(name), booking_options(option_id, option_name, price)"
     )
-    // Tri chronologique : d'abord par jour planifié (les demandes en attente,
-    // sans date, passent en dernier et se trient alors par date de dépôt).
-    .order("scheduled_date", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: true })
+    // Tri chronologique du plus récent au plus ancien : d'abord par jour
+    // planifié (les demandes en attente, sans date, passent en dernier et se
+    // trient alors par date de dépôt, la plus récente en premier).
+    .order("scheduled_date", { ascending: false, nullsFirst: false })
+    .order("created_at", { ascending: false })
     .limit(100);
 
   if (status !== "all") query = query.eq("status", status);
