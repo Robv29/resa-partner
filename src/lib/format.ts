@@ -36,6 +36,16 @@ export const WEEKDAY_LABELS: { value: number; label: string }[] = [
   { value: 7, label: "Dimanche" },
 ];
 
+// Ajoute N jours (peut être négatif) à une date ISO "YYYY-MM-DD" (ou à
+// aujourd'hui par défaut), en restant en dates civiles pures (pas de piège
+// de fuseau horaire type "23h -> jour d'avant").
+export function addDaysISO(days: number, from: string = todayISO()): string {
+  const [y, m, d] = from.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  dt.setUTCDate(dt.getUTCDate() + days);
+  return dt.toISOString().slice(0, 10);
+}
+
 export function formatEUR(amount: number): string {
   return new Intl.NumberFormat("fr-FR", { style: "currency", currency: "EUR" }).format(amount);
 }
