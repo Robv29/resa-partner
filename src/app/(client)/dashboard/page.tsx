@@ -25,7 +25,7 @@ export default async function DashboardPage() {
     return (
       <main className="max-w-lg mx-auto p-6 mt-10">
         <div className={`${panelClass} p-5 text-sm text-red-700 bg-red-50 border-red-100`}>
-          Votre compte n'est rattaché à aucun site. Contactez VGS Autos pour régulariser votre accès.
+          Votre compte n'est rattaché à aucun site. Contactez Résa Partner pour régulariser votre accès.
         </div>
       </main>
     );

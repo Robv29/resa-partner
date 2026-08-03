@@ -1,10 +1,10 @@
 // Templates HTML simples, sans dépendance supplémentaire (pas de React Email)
-// pour rester léger. Le style reprend l'identité "VGS Autos".
+// pour rester léger. Le style reprend l'identité "Résa Partner".
 
 // Toute donnée saisie par un utilisateur (plaque, modèle, notes, nom du
 // site, nom du demandeur...) est interpolée directement dans du HTML. Sans
 // échappement, un site pourrait injecter du HTML/JS dans le corps de
-// l'email reçu par l'équipe VGS Autos (ex: plaque = "<img src=x onerror=...>").
+// l'email reçu par l'équipe Résa Partner (ex: plaque = "<img src=x onerror=...>").
 // On échappe systématiquement toute valeur variable avant de l'insérer.
 function escapeHtml(value: string): string {
   return value
@@ -18,12 +18,12 @@ function escapeHtml(value: string): string {
 const wrapper = (title: string, body: string) => `
 <div style="font-family:Arial,Helvetica,sans-serif;max-width:560px;margin:0 auto;color:#0f172a;">
   <div style="background:#0f172a;padding:20px 24px;border-radius:8px 8px 0 0;">
-    <span style="color:#fff;font-size:18px;font-weight:bold;">VGS AUTOS</span>
+    <span style="color:#fff;font-size:18px;font-weight:bold;">RÉSA PARTNER</span>
   </div>
   <div style="border:1px solid #e2e8f0;border-top:none;padding:24px;border-radius:0 0 8px 8px;">
     <h2 style="margin-top:0;font-size:17px;">${title}</h2>
     ${body}
-    <p style="margin-top:24px;font-size:12px;color:#64748b;">VGS Autos — Cet email est généré automatiquement par l'espace de réservation.</p>
+    <p style="margin-top:24px;font-size:12px;color:#64748b;">Résa Partner — Cet email est généré automatiquement par l'espace de réservation.</p>
   </div>
 </div>`;
 

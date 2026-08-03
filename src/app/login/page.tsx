@@ -16,7 +16,7 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
         <div className="mb-1">
           <Image src="/logo-full.png" alt="Résa Partner" width={220} height={220} className="h-24 w-auto" priority />
         </div>
-        <p className="text-ink-soft mb-7 text-sm">Espace de réservation nettoyage automobile — VGS Autos</p>
+        <p className="text-ink-soft mb-7 text-sm">Espace de réservation nettoyage automobile</p>
 
         <form action={signIn} className="bg-surface border border-border rounded-lg p-6 space-y-4">
           <div>
@@ -52,7 +52,7 @@ export default function LoginPage({ searchParams }: { searchParams: { error?: st
           </a>
         </div>
         <p className="text-xs text-ink-faint mt-4 text-center">
-          Pas encore de compte ? Contactez VGS Autos pour recevoir votre invitation.
+          Pas encore de compte ? Contactez Résa Partner pour recevoir votre invitation.
         </p>
       </div>
     </main>

@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
     await resend.emails.send({
       from: FROM,
       to: emails,
-      subject: `[VGS Autos] Besoin de nettoyage — semaine ${week}`,
+      subject: `[Résa Partner] Besoin de nettoyage — semaine ${week}`,
       html: weeklyReminderEmail(site.name, week, appUrl),
     });
 

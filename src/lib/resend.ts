@@ -6,4 +6,4 @@ import { Resend } from "resend";
 // un envoi réel échouera alors proprement avec une erreur API explicite,
 // plutôt que de faire planter toute l'app au démarrage.
 export const resend = new Resend(process.env.RESEND_API_KEY || "re_build_placeholder");
-export const FROM = process.env.RESEND_FROM_EMAIL || "VGS Autos <onboarding@resend.dev>";
+export const FROM = process.env.RESEND_FROM_EMAIL || "Résa Partner <onboarding@resend.dev>";

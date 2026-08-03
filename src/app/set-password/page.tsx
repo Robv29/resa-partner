@@ -43,7 +43,7 @@ export default function SetPasswordPage() {
           <Sparkles className="h-4 w-4" strokeWidth={2.25} />
         </span>
         <div>
-          <h1 className="text-lg font-semibold text-ink tracking-[-0.01em]">Bienvenue chez VGS Autos</h1>
+          <h1 className="text-lg font-semibold text-ink tracking-[-0.01em]">Bienvenue sur Résa Partner</h1>
           <p className="text-sm text-ink-soft mt-1">Choisissez votre mot de passe pour activer votre accès.</p>
         </div>
         <input
