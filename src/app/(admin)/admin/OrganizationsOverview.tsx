@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, ArrowRight, CarFront } from "lucide-react";
+import { Building2, ArrowRight, CarFront, Coins, ShieldCheck } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatEUR, lastMonths, monthRange } from "@/lib/format";
 import { panelClass } from "@/components/ui";
@@ -61,20 +61,29 @@ export default async function OrganizationsOverview() {
         description="Pilotage global Résa Partner. Sélectionne une organisation dans le menu du haut pour gérer son compte."
       />
 
-      <StaggerGroup className={`${panelClass} grid grid-cols-3 divide-x divide-border`}>
-        <StaggerItem className="p-5">
+      <StaggerGroup className="grid grid-cols-3 gap-4" staggerDelay={0.05}>
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-gold-soft text-gold-ink">
+            <Coins className="h-4 w-4" strokeWidth={2} />
+          </span>
           <p className="text-xs text-ink-faint mb-2">MRR estimé (25€ / site actif)</p>
           <p className="text-2xl font-semibold tabular-nums text-ink">
             <Counter value={mrrEstimate} format="eur" />
           </p>
         </StaggerItem>
-        <StaggerItem className="p-5">
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-accent-soft text-accent-ink">
+            <ShieldCheck className="h-4 w-4" strokeWidth={2} />
+          </span>
           <p className="text-xs text-ink-faint mb-2">Organisations actives</p>
           <p className="text-2xl font-semibold tabular-nums text-ink">
             <Counter value={activeOrgs} /> <span className="text-base text-ink-faint">/ {(organizations || []).length}</span>
           </p>
         </StaggerItem>
-        <StaggerItem className="p-5">
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-violet-100 text-violet-700">
+            <Building2 className="h-4 w-4" strokeWidth={2} />
+          </span>
           <p className="text-xs text-ink-faint mb-2">Sites actifs (tous comptes)</p>
           <p className="text-2xl font-semibold tabular-nums text-ink">
             <Counter value={totalActiveSites} />

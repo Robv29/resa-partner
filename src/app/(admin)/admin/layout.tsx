@@ -1,10 +1,7 @@
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
-import LogoutButton from "@/components/LogoutButton";
-import AdminNav from "@/components/AdminNav";
-import BrandBadge from "@/components/BrandBadge";
-import OrgSwitcher from "@/components/OrgSwitcher";
+import Sidebar from "@/components/Sidebar";
 import { VIEWING_ORG_COOKIE } from "@/lib/auth-guard";
 
 export default async function AdminLayout({ children }: { children: React.ReactNode }) {
@@ -28,34 +25,16 @@ export default async function AdminLayout({ children }: { children: React.ReactN
   const viewingCookie = cookies().get(VIEWING_ORG_COOKIE)?.value;
   const currentOrgId = isSuperAdmin ? (viewingCookie === "__all__" ? null : viewingCookie || profile.organization_id) : null;
 
-  const initials = profile.full_name
-    .split(" ")
-    .map((p: string) => p[0])
-    .slice(0, 2)
-    .join("")
-    .toUpperCase();
-
   return (
-    <div className="min-h-screen">
-      <header className="bg-ink">
-        <div className="max-w-6xl mx-auto px-6 py-3 flex items-center justify-between">
-          <div className="flex items-center gap-8">
-            <div className="flex items-center gap-2">
-              <BrandBadge size={28} />
-              <span className="font-semibold text-white text-sm tracking-[-0.01em]">Résa Partner</span>
-            </div>
-            <AdminNav isSuperAdmin={isSuperAdmin} />
-          </div>
-          <div className="flex items-center gap-3 text-sm">
-            {isSuperAdmin && <OrgSwitcher organizations={organizations} currentOrgId={currentOrgId} />}
-            <span className="flex h-7 w-7 items-center justify-center rounded-full bg-accent text-white text-xs font-semibold">
-              {initials}
-            </span>
-            <LogoutButton dark />
-          </div>
-        </div>
-      </header>
-      <main className="max-w-6xl mx-auto p-6">{children}</main>
+    <div className="min-h-screen bg-bg">
+      <Sidebar
+        isSuperAdmin={isSuperAdmin}
+        organizations={organizations}
+        currentOrgId={currentOrgId}
+        fullName={profile.full_name}
+        role={profile.role}
+      />
+      <main className="ml-[252px] max-w-[1400px] p-8">{children}</main>
     </div>
   );
 }

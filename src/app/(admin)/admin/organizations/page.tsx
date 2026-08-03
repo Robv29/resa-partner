@@ -88,7 +88,7 @@ export default async function OrganizationsPage({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 items-center justify-center rounded-md bg-black/[0.03] text-ink-soft shrink-0">
+                    <span className="flex h-9 w-9 items-center justify-center rounded-md bg-gold-soft text-gold-ink shrink-0">
                       <Building2 className="h-4 w-4" strokeWidth={2} />
                     </span>
                     <div>

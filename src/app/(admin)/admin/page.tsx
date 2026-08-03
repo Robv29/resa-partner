@@ -9,6 +9,9 @@ import {
   TrendingDown,
   Minus,
   Ban,
+  Coins,
+  CheckCircle2,
+  Wallet,
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR, todayISO, addDaysISO, lastMonths, monthRange } from "@/lib/format";
@@ -174,8 +177,11 @@ export default async function AdminOverview() {
       />
 
       {/* Rentabilité du mois */}
-      <StaggerGroup className={`${panelClass} grid grid-cols-3 divide-x divide-border`}>
-        <StaggerItem className="p-5">
+      <StaggerGroup className="grid grid-cols-3 gap-4" staggerDelay={0.05}>
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-gold-soft text-gold-ink">
+            <Coins className="h-4 w-4" strokeWidth={2} />
+          </span>
           <p className="text-xs text-ink-faint mb-2">CA facturable ce mois-ci</p>
           <div className="flex items-baseline gap-2">
             <p className="text-2xl font-semibold tabular-nums text-ink">
@@ -185,7 +191,10 @@ export default async function AdminOverview() {
           </div>
           <p className="text-xs text-ink-faint mt-1">vs {formatEUR(caPrevious)} en {prevMonth.label.toLowerCase()}</p>
         </StaggerItem>
-        <StaggerItem className="p-5">
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-accent-soft text-accent-ink">
+            <CheckCircle2 className="h-4 w-4" strokeWidth={2} />
+          </span>
           <p className="text-xs text-ink-faint mb-2">Nettoyages terminés ce mois</p>
           <div className="flex items-baseline gap-2">
             <p className="text-2xl font-semibold tabular-nums text-ink">
@@ -195,7 +204,10 @@ export default async function AdminOverview() {
           </div>
           <p className="text-xs text-ink-faint mt-1">vs {nbPrevious} en {prevMonth.label.toLowerCase()}</p>
         </StaggerItem>
-        <StaggerItem className="p-5">
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-violet-100 text-violet-700">
+            <Wallet className="h-4 w-4" strokeWidth={2} />
+          </span>
           <p className="text-xs text-ink-faint mb-2">Panier moyen / véhicule</p>
           <p className="text-2xl font-semibold tabular-nums text-ink">
             <Counter value={panierMoyen} format="eur" />
@@ -211,13 +223,15 @@ export default async function AdminOverview() {
       </StaggerGroup>
 
       {/* Exploitation */}
-      <StaggerGroup className={`${panelClass} grid grid-cols-4 divide-x divide-border`}>
-        <StaggerItem className="relative p-5">
+      <StaggerGroup className="grid grid-cols-4 gap-4" staggerDelay={0.05}>
+        <StaggerItem className={`${panelClass} relative p-5`}>
           {(pending?.length ?? 0) > 0 && (
             <span className="absolute right-4 top-4 flex h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-label="Plaques non validées" />
           )}
-          <CircleDashed className="h-4 w-4 mb-3 text-amber-600" strokeWidth={2} />
-          <p className="text-2xl font-semibold tabular-nums text-amber-600">
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-orange-50 text-orange-600">
+            <CircleDashed className="h-4 w-4" strokeWidth={2} />
+          </span>
+          <p className="text-2xl font-semibold tabular-nums text-ink">
             <Counter value={pending?.length ?? 0} />
           </p>
           <p className="text-xs text-ink-faint mt-1">En attente de planification</p>
@@ -227,22 +241,28 @@ export default async function AdminOverview() {
             </p>
           )}
         </StaggerItem>
-        <StaggerItem className="p-5">
-          <CalendarClock className="h-4 w-4 mb-3 text-accent-ink" strokeWidth={2} />
-          <p className="text-2xl font-semibold tabular-nums text-accent-ink">
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-accent-soft text-accent-ink">
+            <CalendarClock className="h-4 w-4" strokeWidth={2} />
+          </span>
+          <p className="text-2xl font-semibold tabular-nums text-ink">
             <Counter value={scheduledUpcoming ?? 0} />
           </p>
           <p className="text-xs text-ink-faint mt-1">Planifiés dans les 7 prochains jours</p>
         </StaggerItem>
-        <StaggerItem className="p-5">
-          <Ban className="h-4 w-4 mb-3 text-ink-soft" strokeWidth={2} />
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-violet-100 text-violet-700">
+            <Ban className="h-4 w-4" strokeWidth={2} />
+          </span>
           <p className="text-2xl font-semibold tabular-nums text-ink">
             <Counter value={refusalRate} format="percent" />
           </p>
           <p className="text-xs text-ink-faint mt-1">Taux de refus/annulation (30j)</p>
         </StaggerItem>
-        <StaggerItem className="p-5">
-          <Building2 className="h-4 w-4 mb-3 text-ink" strokeWidth={2} />
+        <StaggerItem className={`${panelClass} p-5`}>
+          <span className="mb-3 flex h-9 w-9 items-center justify-center rounded-md bg-blue-50 text-blue-600">
+            <Building2 className="h-4 w-4" strokeWidth={2} />
+          </span>
           <p className="text-2xl font-semibold tabular-nums text-ink">
             <Counter value={siteCount ?? 0} />
           </p>

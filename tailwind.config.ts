@@ -31,6 +31,13 @@ const config: Config = {
           soft: "oklch(0.95 0.05 85)",
           ink: "oklch(0.34 0.10 75)",
         },
+        // Navy de la sidebar : même teinte que "ink" mais plus riche/saturée,
+        // pour une identité de navigation distincte du contenu (neutre).
+        navy: {
+          DEFAULT: "oklch(0.22 0.045 258)",
+          deep: "oklch(0.15 0.04 258)",
+          soft: "oklch(0.28 0.05 258)",
+        },
       },
       fontFamily: {
         sans: ["var(--font-inter)", "system-ui", "sans-serif"],

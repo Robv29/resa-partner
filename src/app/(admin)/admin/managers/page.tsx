@@ -42,7 +42,11 @@ export default async function ManagersPage() {
               className={`${panelClass} flex items-center justify-between p-4 transition-[transform,box-shadow] duration-200 hover:-translate-y-[1px] hover:shadow-[0_4px_16px_-4px_rgba(15,23,30,0.10)]`}
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.04] text-ink-soft">
+                <span
+                  className={`flex h-9 w-9 items-center justify-center rounded-full ${
+                    m.role === "admin" ? "bg-gold-soft text-gold-ink" : "bg-accent-soft text-accent-ink"
+                  }`}
+                >
                   {m.role === "admin" ? (
                     <ShieldCheck className="h-4 w-4" strokeWidth={2} />
                   ) : (
@@ -55,7 +59,13 @@ export default async function ManagersPage() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="text-xs px-2 py-1 rounded-full bg-black/[0.04] text-ink-soft capitalize">{m.role}</span>
+                <span
+                  className={`text-xs px-2 py-1 rounded-full capitalize ${
+                    m.role === "admin" ? "bg-gold-soft text-gold-ink" : "bg-accent-soft text-accent-ink"
+                  }`}
+                >
+                  {m.role}
+                </span>
                 {m.role !== "admin" && (
                   <form action={removeManager}>
                     <input type="hidden" name="manager_id" value={m.id} />
