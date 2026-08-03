@@ -5,6 +5,8 @@ import BillingFilters from "./BillingFilters";
 import CopyPlatesButton from "./CopyPlatesButton";
 import { panelClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
+import Reveal, { StaggerTBody, StaggerRow } from "@/components/motion/Reveal";
+import Counter from "@/components/motion/Counter";
 
 export default async function BillingPage({
   searchParams,
@@ -64,15 +66,17 @@ export default async function BillingPage({
         actions={<BillingFilters sites={sites || []} months={months} currentSite={currentSite} currentMonth={currentMonth} />}
       />
 
-      <div className={`${panelClass} flex items-center justify-between p-5`}>
+      <Reveal className={`${panelClass} flex items-center justify-between p-5`}>
         <span className="flex items-center gap-2 text-sm text-ink-soft">
           <Receipt className="h-4 w-4 text-ink-faint" strokeWidth={2} />
           Total à facturer sur la période
         </span>
-        <span className="text-2xl font-semibold text-ink tabular-nums">{formatEUR(grandTotal)}</span>
-      </div>
+        <span className="text-2xl font-semibold text-ink tabular-nums">
+          <Counter value={grandTotal} format={formatEUR} />
+        </span>
+      </Reveal>
 
-      <div className={panelClass}>
+      <Reveal delay={0.05} className={panelClass}>
         <table className="w-full text-sm">
           <thead>
             <tr className="text-left text-xs text-ink-faint border-b border-border">
@@ -82,9 +86,9 @@ export default async function BillingPage({
               <th className="py-3 px-5 font-medium">Plaques concernées</th>
             </tr>
           </thead>
-          <tbody>
+          <StaggerTBody staggerDelay={0.05}>
             {rows.map(([optionName, g]) => (
-              <tr key={optionName} className="border-b border-border last:border-0 align-top">
+              <StaggerRow key={optionName} className="border-b border-border last:border-0 align-top transition-colors hover:bg-black/[0.015]">
                 <td className="py-3 px-5 font-medium text-ink">{optionName}</td>
                 <td className="py-3 px-4 text-ink-soft tabular-nums">{g.plates.size}</td>
                 <td className="py-3 px-4 font-semibold text-ink tabular-nums">{formatEUR(g.total)}</td>
@@ -94,7 +98,7 @@ export default async function BillingPage({
                     <CopyPlatesButton plates={Array.from(g.plates)} />
                   </div>
                 </td>
-              </tr>
+              </StaggerRow>
             ))}
             {rows.length === 0 && (
               <tr>
@@ -103,9 +107,9 @@ export default async function BillingPage({
                 </td>
               </tr>
             )}
-          </tbody>
+          </StaggerTBody>
         </table>
-      </div>
+      </Reveal>
     </div>
   );
 }

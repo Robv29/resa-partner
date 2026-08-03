@@ -5,6 +5,7 @@ import Link from "next/link";
 import { KeyRound, TriangleAlert, CheckCircle2 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { inputClass, buttonClass } from "@/components/ui";
+import Reveal from "@/components/motion/Reveal";
 
 // Self-service "mot de passe oublié" : avant cette page, seul un admin
 // pouvait renvoyer une invitation pour réinitialiser un mot de passe.
@@ -38,13 +39,18 @@ export default function ForgotPasswordPage() {
   }
 
   return (
-    <main className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden">
+    <main className="relative min-h-screen flex items-center justify-center px-4 overflow-hidden bg-bg">
       <div
         aria-hidden
-        className="absolute -top-40 left-1/2 -translate-x-1/2 h-96 w-[36rem] rounded-full bg-accent/10 blur-3xl"
+        className="absolute -top-40 left-1/2 -translate-x-1/2 h-96 w-[36rem] rounded-full bg-accent/10 blur-3xl animate-float"
       />
-      <div className="relative w-full max-w-sm bg-surface border border-border rounded-lg p-6 space-y-4">
-        <span className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-soft text-accent-ink">
+      <div
+        aria-hidden
+        className="absolute -bottom-40 left-1/2 -translate-x-1/2 h-96 w-[30rem] rounded-full bg-gold/10 blur-3xl animate-float"
+        style={{ animationDelay: "-4.5s" }}
+      />
+      <Reveal className="relative w-full max-w-sm bg-surface border border-border rounded-lg p-6 space-y-4 shadow-[0_12px_32px_-16px_rgba(15,23,30,0.14)]">
+        <span className="flex h-9 w-9 items-center justify-center rounded-md bg-accent-soft text-accent-ink animate-bob">
           <KeyRound className="h-4 w-4" strokeWidth={2.25} />
         </span>
         <div>
@@ -55,7 +61,7 @@ export default function ForgotPasswordPage() {
         </div>
 
         {sent ? (
-          <p className="flex items-start gap-1.5 text-sm text-emerald-700">
+          <p className="flex items-start gap-1.5 text-sm text-emerald-700 animate-pop">
             <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
             Si cet email est associé à un compte, un lien de réinitialisation vient d'être envoyé.
           </p>
@@ -71,7 +77,7 @@ export default function ForgotPasswordPage() {
               className={inputClass}
             />
             {error && (
-              <p className="flex items-start gap-1.5 text-sm text-red-600">
+              <p className="flex items-start gap-1.5 text-sm text-red-600 animate-pop">
                 <TriangleAlert className="h-4 w-4 shrink-0 mt-0.5" strokeWidth={2} />
                 {error}
               </p>
@@ -82,10 +88,10 @@ export default function ForgotPasswordPage() {
           </form>
         )}
 
-        <Link href="/login" className="block text-xs text-ink-faint hover:text-ink-soft text-center pt-1">
+        <Link href="/login" className="block text-xs text-ink-faint hover:text-ink-soft text-center pt-1 transition-colors">
           Retour à la connexion
         </Link>
-      </div>
+      </Reveal>
     </main>
   );
 }

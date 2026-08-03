@@ -4,6 +4,7 @@ import { inviteManager, removeManager } from "./actions";
 import { panelClass, inputClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
 import SubmitButton from "@/components/ui/SubmitButton";
+import Reveal, { StaggerGroup, StaggerItem } from "@/components/motion/Reveal";
 
 export default async function ManagersPage() {
   const supabase = createClient();
@@ -18,9 +19,12 @@ export default async function ManagersPage() {
       <PageHeader title="Équipe interne" description="Managers et admins qui reçoivent les notifications de planification." />
 
       <div className="grid grid-cols-3 gap-6">
-        <div className="col-span-2 space-y-2">
+        <StaggerGroup className="col-span-2 space-y-2" staggerDelay={0.05}>
           {(team || []).map((m: any) => (
-            <div key={m.id} className={`${panelClass} flex items-center justify-between p-4`}>
+            <StaggerItem
+              key={m.id}
+              className={`${panelClass} flex items-center justify-between p-4 transition-[transform,box-shadow] duration-200 hover:-translate-y-[1px] hover:shadow-[0_4px_16px_-4px_rgba(15,23,30,0.10)]`}
+            >
               <div className="flex items-center gap-3">
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-black/[0.04] text-ink-soft">
                   {m.role === "admin" ? (
@@ -50,11 +54,11 @@ export default async function ManagersPage() {
                   </form>
                 )}
               </div>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
 
-        <div>
+        <Reveal delay={0.1}>
           <h2 className="font-medium text-sm text-ink-soft mb-2">Ajouter un membre</h2>
           <form action={inviteManager} className={`${panelClass} p-4 space-y-3`}>
             <input name="full_name" placeholder="Nom" required className={inputClass} />
@@ -67,7 +71,7 @@ export default async function ManagersPage() {
               Inviter
             </SubmitButton>
           </form>
-        </div>
+        </Reveal>
       </div>
     </div>
   );

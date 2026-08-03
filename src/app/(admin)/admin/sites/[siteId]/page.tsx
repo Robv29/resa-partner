@@ -13,6 +13,7 @@ import {
 import { panelClass, inputClass, labelClass, buttonClass } from "@/components/ui";
 import SubmitButton from "@/components/ui/SubmitButton";
 import { WEEKDAY_LABELS } from "@/lib/format";
+import Reveal, { StaggerGroup, StaggerItem, StaggerTBody, StaggerRow } from "@/components/motion/Reveal";
 
 export default async function SiteDetailPage({ params }: { params: { siteId: string } }) {
   const supabase = createClient();
@@ -35,17 +36,18 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
 
   return (
     <div className="space-y-6">
-      <div>
-        <Link href="/admin/sites" className="flex items-center gap-1.5 text-sm text-ink-faint hover:text-ink-soft mb-2">
+      <Reveal>
+        <Link href="/admin/sites" className="flex items-center gap-1.5 text-sm text-ink-faint hover:text-ink-soft mb-2 transition-colors">
           <ArrowLeft className="h-3.5 w-3.5" strokeWidth={2} />
           Sites
         </Link>
         <h1 className="text-xl font-semibold text-ink tracking-[-0.01em]">{site.name}</h1>
-      </div>
+      </Reveal>
 
       <div className="grid grid-cols-2 gap-6">
         {/* Infos site */}
-        <form action={updateSite} className={`${panelClass} p-5 space-y-3`}>
+        <Reveal delay={0.05} className={`${panelClass} p-5`}>
+        <form action={updateSite} className="space-y-3">
           <input type="hidden" name="site_id" value={site.id} />
           <h2 className="font-medium text-sm text-ink-soft">Informations</h2>
           <div>
@@ -75,13 +77,17 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
           </label>
           <SubmitButton variant="primary" pendingText="Enregistrement…">Enregistrer</SubmitButton>
         </form>
+        </Reveal>
 
         {/* Contacts */}
-        <div className={`${panelClass} p-5 space-y-3`}>
+        <Reveal delay={0.1} className={`${panelClass} p-5 space-y-3`}>
           <h2 className="font-medium text-sm text-ink-soft">Contacts rattachés</h2>
-          <div className="space-y-2">
+          <StaggerGroup className="space-y-2" staggerDelay={0.05}>
             {(contacts || []).map((c: any) => (
-              <div key={c.id} className="flex items-center justify-between text-sm border border-border rounded-md px-3 py-2">
+              <StaggerItem
+                key={c.id}
+                className="flex items-center justify-between text-sm border border-border rounded-md px-3 py-2 transition-colors hover:border-border-strong"
+              >
                 <div className="flex items-center gap-2.5">
                   <span className="flex h-7 w-7 items-center justify-center rounded-full bg-black/[0.04] text-ink-faint">
                     <UserRound className="h-3.5 w-3.5" strokeWidth={2} />
@@ -103,10 +109,10 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
                     Retirer
                   </SubmitButton>
                 </form>
-              </div>
+              </StaggerItem>
             ))}
             {(contacts || []).length === 0 && <p className="text-xs text-ink-faint">Aucun contact pour le moment.</p>}
-          </div>
+          </StaggerGroup>
           <form action={inviteContact} className="border-t border-border pt-3 space-y-2">
             <input type="hidden" name="site_id" value={siteId} />
             <input name="full_name" placeholder="Nom du contact" required className={inputClass} />
@@ -115,48 +121,51 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
               Inviter (envoi email de création de compte)
             </SubmitButton>
           </form>
-        </div>
+        </Reveal>
       </div>
 
       {/* Référents */}
-      <form action={updateSiteReferents} className={`${panelClass} p-5 space-y-3`}>
+      <Reveal delay={0.15} className={`${panelClass} p-5`}>
+      <form action={updateSiteReferents} className="space-y-3">
         <input type="hidden" name="site_id" value={siteId} />
         <h2 className="font-medium text-sm text-ink-soft">Référents (reçoivent les notifications)</h2>
         <p className="text-xs text-ink-faint">
           Un ou plusieurs admins/managers qui reçoivent un email à chaque nouvelle plaque déposée par ce site. Aucune
           limite : tu peux en mettre plusieurs, ou aucun.
         </p>
-        <div className="space-y-1.5">
+        <StaggerGroup className="space-y-1.5" staggerDelay={0.04}>
           {(team || []).map((m: any) => (
-            <label
-              key={m.id}
-              className="flex items-center gap-2.5 text-sm border border-border rounded-md px-3 py-2 cursor-pointer hover:border-border-strong"
-            >
-              <input
-                type="checkbox"
-                name="referent_id"
-                value={m.id}
-                defaultChecked={referentIds.has(m.id)}
-                className="accent-accent h-4 w-4"
-              />
-              <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-ink-faint shrink-0">
-                {m.role === "admin" ? (
-                  <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
-                ) : (
-                  <UserRound className="h-3.5 w-3.5" strokeWidth={2} />
-                )}
-              </span>
-              <span className="text-ink">{m.full_name}</span>
-              <span className="text-xs text-ink-faint capitalize ml-auto">{m.role}</span>
-            </label>
+            <StaggerItem key={m.id}>
+              <label
+                className="flex items-center gap-2.5 text-sm border border-border rounded-md px-3 py-2 cursor-pointer transition-colors hover:border-border-strong hover:bg-black/[0.01]"
+              >
+                <input
+                  type="checkbox"
+                  name="referent_id"
+                  value={m.id}
+                  defaultChecked={referentIds.has(m.id)}
+                  className="accent-accent h-4 w-4"
+                />
+                <span className="flex h-6 w-6 items-center justify-center rounded-full bg-black/[0.04] text-ink-faint shrink-0">
+                  {m.role === "admin" ? (
+                    <ShieldCheck className="h-3.5 w-3.5" strokeWidth={2} />
+                  ) : (
+                    <UserRound className="h-3.5 w-3.5" strokeWidth={2} />
+                  )}
+                </span>
+                <span className="text-ink">{m.full_name}</span>
+                <span className="text-xs text-ink-faint capitalize ml-auto">{m.role}</span>
+              </label>
+            </StaggerItem>
           ))}
           {(team || []).length === 0 && <p className="text-xs text-ink-faint">Aucun admin/manager enregistré.</p>}
-        </div>
+        </StaggerGroup>
         <SubmitButton variant="primary" pendingText="Enregistrement…">Enregistrer les référents</SubmitButton>
       </form>
+      </Reveal>
 
       {/* Options & prix */}
-      <div className={panelClass}>
+      <Reveal delay={0.2} className={panelClass}>
         <h2 className="font-medium text-sm text-ink-soft px-5 pt-5">Options disponibles & prix</h2>
         <table className="w-full text-sm mt-3">
           <thead>
@@ -166,11 +175,11 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
               <th className="py-2 px-5 w-32 font-medium">Statut</th>
             </tr>
           </thead>
-          <tbody>
+          <StaggerTBody staggerDelay={0.04}>
             {(options || []).map((opt: any) => {
               const so = siteOptionByOptionId.get(opt.id);
               return (
-                <tr key={opt.id} className="border-b border-border last:border-0">
+                <StaggerRow key={opt.id} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.015]">
                   <td className="py-2.5 px-5 text-ink">
                     {opt.name}
                     {opt.is_base && <span className="text-xs text-ink-faint ml-1">(base)</span>}
@@ -215,10 +224,10 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
                       <span className="text-xs text-ink-faint">—</span>
                     )}
                   </td>
-                </tr>
+                </StaggerRow>
               );
             })}
-          </tbody>
+          </StaggerTBody>
         </table>
         <form action={createOption} className="flex items-end gap-2 px-5 py-4 border-t border-border">
           <input type="hidden" name="site_id" value={siteId} />
@@ -237,7 +246,7 @@ export default async function SiteDetailPage({ params }: { params: { siteId: str
           le catalogue global : tu pourras l'activer et lui donner un autre prix sur les autres sites depuis leur
           propre fiche.
         </p>
-      </div>
+      </Reveal>
     </div>
   );
 }

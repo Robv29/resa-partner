@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion } from "framer-motion";
 import { LayoutGrid, CalendarClock, Building2, Receipt, Users } from "lucide-react";
 
 const nav = [
@@ -23,12 +24,22 @@ export default function AdminNav() {
           <Link
             key={item.href}
             href={item.href}
-            className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
-              active ? "bg-white/10 text-white" : "text-white/55 hover:text-white hover:bg-white/5"
+            className={`relative flex items-center gap-1.5 rounded-md px-3 py-1.5 transition-colors ${
+              active ? "text-white" : "text-white/55 hover:text-white"
             }`}
           >
-            <item.Icon className="h-3.5 w-3.5" strokeWidth={2} />
-            {item.label}
+            {active && (
+              <motion.span
+                layoutId="admin-nav-active-pill"
+                className="absolute inset-0 rounded-md bg-white/10"
+                transition={{ type: "spring", stiffness: 420, damping: 34 }}
+              />
+            )}
+            {!active && (
+              <span className="absolute inset-0 rounded-md bg-white/0 hover:bg-white/5 transition-colors" />
+            )}
+            <item.Icon className="relative h-3.5 w-3.5" strokeWidth={2} />
+            <span className="relative">{item.label}</span>
           </Link>
         );
       })}

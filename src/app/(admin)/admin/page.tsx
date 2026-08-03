@@ -14,6 +14,8 @@ import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR, todayISO, addDaysISO, lastMonths, monthRange } from "@/lib/format";
 import { panelClass } from "@/components/ui";
 import PageHeader from "@/components/ui/PageHeader";
+import { StaggerGroup, StaggerItem, StaggerTBody, StaggerRow } from "@/components/motion/Reveal";
+import Counter from "@/components/motion/Counter";
 
 // Variation en % entre deux valeurs, avec un statut à part pour "pas de
 // référence" (mois précédent à 0) plutôt qu'un pourcentage absurde.
@@ -152,26 +154,32 @@ export default async function AdminOverview() {
       />
 
       {/* Rentabilité du mois */}
-      <div className={`${panelClass} grid grid-cols-3 divide-x divide-border`}>
-        <div className="p-5">
+      <StaggerGroup className={`${panelClass} grid grid-cols-3 divide-x divide-border`}>
+        <StaggerItem className="p-5">
           <p className="text-xs text-ink-faint mb-2">CA facturable ce mois-ci</p>
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(caCurrent)}</p>
+            <p className="text-2xl font-semibold tabular-nums text-ink">
+              <Counter value={caCurrent} format={formatEUR} />
+            </p>
             <DeltaBadge current={caCurrent} previous={caPrevious} />
           </div>
           <p className="text-xs text-ink-faint mt-1">vs {formatEUR(caPrevious)} en {prevMonth.label.toLowerCase()}</p>
-        </div>
-        <div className="p-5">
+        </StaggerItem>
+        <StaggerItem className="p-5">
           <p className="text-xs text-ink-faint mb-2">Nettoyages terminés ce mois</p>
           <div className="flex items-baseline gap-2">
-            <p className="text-2xl font-semibold tabular-nums text-ink">{nbCurrent}</p>
+            <p className="text-2xl font-semibold tabular-nums text-ink">
+              <Counter value={nbCurrent} />
+            </p>
             <DeltaBadge current={nbCurrent} previous={nbPrevious} />
           </div>
           <p className="text-xs text-ink-faint mt-1">vs {nbPrevious} en {prevMonth.label.toLowerCase()}</p>
-        </div>
-        <div className="p-5">
+        </StaggerItem>
+        <StaggerItem className="p-5">
           <p className="text-xs text-ink-faint mb-2">Panier moyen / véhicule</p>
-          <p className="text-2xl font-semibold tabular-nums text-ink">{formatEUR(panierMoyen)}</p>
+          <p className="text-2xl font-semibold tabular-nums text-ink">
+            <Counter value={panierMoyen} format={formatEUR} />
+          </p>
           <p className="text-xs text-ink-faint mt-1">
             {topOption ? (
               <>Option la + vendue : <span className="text-ink-soft">{topOption[0]}</span> ({topOption[1].count})</>
@@ -179,40 +187,48 @@ export default async function AdminOverview() {
               "Aucune vente ce mois"
             )}
           </p>
-        </div>
-      </div>
+        </StaggerItem>
+      </StaggerGroup>
 
       {/* Exploitation */}
-      <div className={`${panelClass} grid grid-cols-4 divide-x divide-border`}>
-        <div className="relative p-5">
+      <StaggerGroup className={`${panelClass} grid grid-cols-4 divide-x divide-border`}>
+        <StaggerItem className="relative p-5">
           {(pending?.length ?? 0) > 0 && (
-            <span className="absolute right-4 top-4 flex h-2 w-2 rounded-full bg-red-500" aria-label="Plaques non validées" />
+            <span className="absolute right-4 top-4 flex h-2 w-2 rounded-full bg-red-500 animate-pulse" aria-label="Plaques non validées" />
           )}
           <CircleDashed className="h-4 w-4 mb-3 text-amber-600" strokeWidth={2} />
-          <p className="text-2xl font-semibold tabular-nums text-amber-600">{pending?.length ?? 0}</p>
+          <p className="text-2xl font-semibold tabular-nums text-amber-600">
+            <Counter value={pending?.length ?? 0} />
+          </p>
           <p className="text-xs text-ink-faint mt-1">En attente de planification</p>
           {oldestPendingDays >= 1 && (
             <p className="text-xs text-red-600 mt-1 font-medium">
               La plus ancienne attend depuis {Math.floor(oldestPendingDays)} j
             </p>
           )}
-        </div>
-        <div className="p-5">
+        </StaggerItem>
+        <StaggerItem className="p-5">
           <CalendarClock className="h-4 w-4 mb-3 text-accent-ink" strokeWidth={2} />
-          <p className="text-2xl font-semibold tabular-nums text-accent-ink">{scheduledUpcoming ?? 0}</p>
+          <p className="text-2xl font-semibold tabular-nums text-accent-ink">
+            <Counter value={scheduledUpcoming ?? 0} />
+          </p>
           <p className="text-xs text-ink-faint mt-1">Planifiés dans les 7 prochains jours</p>
-        </div>
-        <div className="p-5">
+        </StaggerItem>
+        <StaggerItem className="p-5">
           <Ban className="h-4 w-4 mb-3 text-ink-soft" strokeWidth={2} />
-          <p className="text-2xl font-semibold tabular-nums text-ink">{refusalRate.toFixed(0)}%</p>
+          <p className="text-2xl font-semibold tabular-nums text-ink">
+            <Counter value={refusalRate} format={(n) => `${n.toFixed(0)}%`} />
+          </p>
           <p className="text-xs text-ink-faint mt-1">Taux de refus/annulation (30j)</p>
-        </div>
-        <div className="p-5">
+        </StaggerItem>
+        <StaggerItem className="p-5">
           <Building2 className="h-4 w-4 mb-3 text-ink" strokeWidth={2} />
-          <p className="text-2xl font-semibold tabular-nums text-ink">{siteCount ?? 0}</p>
+          <p className="text-2xl font-semibold tabular-nums text-ink">
+            <Counter value={siteCount ?? 0} />
+          </p>
           <p className="text-xs text-ink-faint mt-1">Sites actifs</p>
-        </div>
-      </div>
+        </StaggerItem>
+      </StaggerGroup>
 
       {/* Demandes en attente */}
       <div className={panelClass}>
@@ -225,24 +241,27 @@ export default async function AdminOverview() {
             Tout voir <ArrowRight className="h-3.5 w-3.5" strokeWidth={2} />
           </Link>
         </div>
-        <div className="divide-y divide-border">
+        <StaggerGroup className="divide-y divide-border" staggerDelay={0.04}>
           {(pending || []).length === 0 && (
             <div className="p-8 text-center">
-              <CarFront className="h-6 w-6 mx-auto text-ink-faint mb-2" strokeWidth={1.5} />
+              <CarFront className="h-6 w-6 mx-auto text-ink-faint mb-2 animate-bob" strokeWidth={1.5} />
               <p className="text-sm text-ink-faint">Rien en attente, tout est planifié.</p>
             </div>
           )}
           {(pending || []).slice(0, 20).map((b: any) => (
-            <div key={b.id} className="px-5 py-3.5 flex items-center justify-between text-sm">
+            <StaggerItem
+              key={b.id}
+              className="px-5 py-3.5 flex items-center justify-between text-sm transition-colors hover:bg-black/[0.015]"
+            >
               <div>
                 <span className="font-mono font-semibold text-ink tracking-wide">{b.plate}</span>{" "}
                 <span className="text-ink-faint">— {b.site?.name}</span>
                 <p className="text-xs text-ink-faint mt-0.5">{b.brand_model || "—"}</p>
               </div>
               <span className="text-xs text-ink-faint">déposé le {formatDateFR(b.created_at)}</span>
-            </div>
+            </StaggerItem>
           ))}
-        </div>
+        </StaggerGroup>
       </div>
 
       {/* Répartition par site */}
@@ -262,9 +281,9 @@ export default async function AdminOverview() {
               <th className="py-2.5 px-5 font-medium">En attente</th>
             </tr>
           </thead>
-          <tbody>
+          <StaggerTBody>
             {siteRows.map((s) => (
-              <tr key={s.name} className="border-b border-border last:border-0">
+              <StaggerRow key={s.name} className="border-b border-border last:border-0 transition-colors hover:bg-black/[0.015]">
                 <td className="py-2.5 px-5 text-ink font-medium">{s.name}</td>
                 <td className="py-2.5 px-4 text-ink tabular-nums">{formatEUR(s.ca)}</td>
                 <td className="py-2.5 px-4 text-ink-soft tabular-nums">{s.nb}</td>
@@ -275,7 +294,7 @@ export default async function AdminOverview() {
                     <span className="text-ink-faint">0</span>
                   )}
                 </td>
-              </tr>
+              </StaggerRow>
             ))}
             {siteRows.length === 0 && (
               <tr>
@@ -284,7 +303,7 @@ export default async function AdminOverview() {
                 </td>
               </tr>
             )}
-          </tbody>
+          </StaggerTBody>
         </table>
       </div>
     </div>

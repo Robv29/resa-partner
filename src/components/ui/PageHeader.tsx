@@ -1,3 +1,7 @@
+"use client";
+
+import Reveal from "@/components/motion/Reveal";
+
 export default function PageHeader({
   title,
   description,
@@ -8,12 +12,12 @@ export default function PageHeader({
   actions?: React.ReactNode;
 }) {
   return (
-    <div className="flex items-start justify-between gap-4 mb-6">
+    <Reveal className="flex items-start justify-between gap-4 mb-6">
       <div>
         <h1 className="text-xl font-semibold text-ink tracking-[-0.01em]">{title}</h1>
         {description && <p className="text-sm text-ink-soft mt-1">{description}</p>}
       </div>
       {actions && <div className="flex items-center gap-2 shrink-0">{actions}</div>}
-    </div>
+    </Reveal>
   );
 }

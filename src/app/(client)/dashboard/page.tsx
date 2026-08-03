@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
-import Image from "next/image";
 import { CarFront } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR } from "@/lib/format";
 import NewBookingForm from "./NewBookingForm";
 import LogoutButton from "@/components/LogoutButton";
+import BrandBadge from "@/components/BrandBadge";
 import StatusBadge from "@/components/ui/StatusBadge";
 import { panelClass } from "@/components/ui";
+import { StaggerGroup, StaggerItem } from "@/components/motion/Reveal";
 
 export default async function DashboardPage() {
   const supabase = createClient();
@@ -58,9 +59,7 @@ export default async function DashboardPage() {
       <header className="bg-ink">
         <div className="max-w-2xl mx-auto px-5 py-4 flex items-center justify-between">
           <div className="flex items-center gap-2.5">
-            <span className="flex h-8 w-8 items-center justify-center rounded-md bg-white p-1">
-              <Image src="/logo-mark.png" alt="Résa Partner" width={32} height={32} className="h-full w-full object-contain" />
-            </span>
+            <BrandBadge size={32} />
             <div>
               <p className="text-sm font-semibold text-white leading-tight">{site?.name}</p>
               <p className="text-xs text-white/50 leading-tight">Bonjour {profile.full_name}</p>
@@ -77,17 +76,20 @@ export default async function DashboardPage() {
           <h2 className="font-semibold text-sm text-ink-soft mb-3">
             Véhicules déposés {bookings && bookings.length > 0 && <span className="text-ink-faint">({bookings.length})</span>}
           </h2>
-          <div className="space-y-2">
+          <StaggerGroup className="space-y-2">
             {(bookings || []).length === 0 && (
-              <div className={`${panelClass} p-8 text-center`}>
-                <CarFront className="h-6 w-6 mx-auto text-ink-faint mb-2" strokeWidth={1.5} />
+              <StaggerItem className={`${panelClass} p-8 text-center`}>
+                <CarFront className="h-6 w-6 mx-auto text-ink-faint mb-2 animate-bob" strokeWidth={1.5} />
                 <p className="text-sm text-ink-faint">Aucune demande pour le moment.</p>
-              </div>
+              </StaggerItem>
             )}
             {(bookings || []).map((b: any) => {
               const total = (b.booking_options || []).reduce((s: number, o: any) => s + Number(o.price), 0);
               return (
-                <div key={b.id} className={`${panelClass} p-4 flex items-center justify-between gap-3`}>
+                <StaggerItem
+                  key={b.id}
+                  className={`${panelClass} p-4 flex items-center justify-between gap-3 transition-[transform,box-shadow] duration-200 hover:-translate-y-[1px] hover:shadow-[0_4px_16px_-4px_rgba(15,23,30,0.10)]`}
+                >
                   <div className="min-w-0">
                     <span className="inline-block rounded border border-border-strong bg-black/[0.02] px-2 py-0.5 font-mono text-sm font-semibold tracking-wider text-ink">
                       {b.plate}
@@ -107,10 +109,10 @@ export default async function DashboardPage() {
                       </p>
                     )}
                   </div>
-                </div>
+                </StaggerItem>
               );
             })}
-          </div>
+          </StaggerGroup>
         </section>
       </main>
     </div>

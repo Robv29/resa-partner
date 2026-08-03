@@ -1,4 +1,4 @@
-import { TriangleAlert, CheckCheck, CarFront, Trash2, Ban } from "lucide-react";
+import { TriangleAlert, CarFront, Trash2, Ban } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
 import { formatDateFR, formatEUR, todayISO } from "@/lib/format";
 import { scheduleBooking, markDone, cancelBooking, addBookingOption } from "./actions";
@@ -7,6 +7,9 @@ import PageHeader from "@/components/ui/PageHeader";
 import StatusBadge from "@/components/ui/StatusBadge";
 import SubmitButton from "@/components/ui/SubmitButton";
 import AdminNewBookingForm from "./AdminNewBookingForm";
+import StatusTabs from "@/components/StatusTabs";
+import MarkDoneButton from "@/components/MarkDoneButton";
+import { StaggerGroup, StaggerItem } from "@/components/motion/Reveal";
 
 export default async function AdminBookingsPage({
   searchParams,
@@ -97,33 +100,12 @@ export default async function AdminBookingsPage({
         siteOptionsBySite={Object.fromEntries(siteOptionsForForm)}
       />
 
-      <div className="flex gap-1.5">
-        {tabs.map((t) => (
-          <a
-            key={t.key}
-            href={`/admin/bookings?status=${t.key}`}
-            className={`flex items-center gap-1.5 text-sm px-3 py-1.5 rounded-md border transition-colors ${
-              status === t.key
-                ? "bg-ink text-white border-ink"
-                : "bg-surface border-border text-ink-soft hover:border-border-strong"
-            }`}
-          >
-            {t.label}
-            <span
-              className={`min-w-[1.25rem] px-1 text-center text-xs font-semibold rounded-full tabular-nums ${
-                status === t.key ? "bg-white/20 text-white" : "bg-black/[0.06] text-ink-soft"
-              }`}
-            >
-              {t.count}
-            </span>
-          </a>
-        ))}
-      </div>
+      <StatusTabs tabs={tabs} />
 
-      <div className="space-y-3">
+      <StaggerGroup className="space-y-3" staggerDelay={0.05}>
         {(bookings || []).length === 0 && (
           <div className={`${panelClass} p-8 text-center`}>
-            <CarFront className="h-6 w-6 mx-auto text-ink-faint mb-2" strokeWidth={1.5} />
+            <CarFront className="h-6 w-6 mx-auto text-ink-faint mb-2 animate-bob" strokeWidth={1.5} />
             <p className="text-sm text-ink-faint">Aucune demande dans cette catégorie.</p>
           </div>
         )}
@@ -131,9 +113,9 @@ export default async function AdminBookingsPage({
           const total = (b.booking_options || []).reduce((s: number, o: any) => s + Number(o.price), 0);
           const isToday = b.status === "scheduled" && b.scheduled_date === today;
           return (
-            <div
+            <StaggerItem
               key={b.id}
-              className={`${panelClass} p-4 ${isToday ? "!border-2 !border-orange-400 bg-orange-50/50" : ""}`}
+              className={`${panelClass} p-4 transition-[transform,box-shadow] duration-200 hover:-translate-y-[1px] hover:shadow-[0_4px_16px_-4px_rgba(15,23,30,0.10)] ${isToday ? "!border-2 !border-orange-400 bg-orange-50/50" : ""}`}
             >
               <div className="flex items-start justify-between gap-3">
                 <div className="min-w-0">
@@ -198,14 +180,7 @@ export default async function AdminBookingsPage({
                     <div className="flex items-center gap-4">
                       <form action={markDone}>
                         <input type="hidden" name="booking_id" value={b.id} />
-                        <SubmitButton
-                          variant="ghost"
-                          className="!px-0 !py-0 text-emerald-700 font-medium hover:text-emerald-800 hover:bg-transparent"
-                          pendingText="…"
-                        >
-                          <CheckCheck className="h-4 w-4" strokeWidth={2} />
-                          Marquer terminé
-                        </SubmitButton>
+                        <MarkDoneButton />
                       </form>
                       <form action={cancelBooking}>
                         <input type="hidden" name="booking_id" value={b.id} />
@@ -267,10 +242,10 @@ export default async function AdminBookingsPage({
                   </form>
                 </div>
               )}
-            </div>
+            </StaggerItem>
           );
         })}
-      </div>
+      </StaggerGroup>
     </div>
   );
 }

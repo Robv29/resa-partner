@@ -1,3 +1,6 @@
+"use client";
+
+import { motion, useReducedMotion } from "framer-motion";
 import { Circle, CircleCheck, CircleDashed, CircleX } from "lucide-react";
 
 const STATUS_MAP = {
@@ -10,15 +13,20 @@ const STATUS_MAP = {
 export type BookingStatus = keyof typeof STATUS_MAP;
 
 export default function StatusBadge({ status }: { status: string }) {
+  const shouldReduceMotion = useReducedMotion();
   const config = STATUS_MAP[(status as BookingStatus) in STATUS_MAP ? (status as BookingStatus) : "pending"];
   const { label, classes, Icon } = config;
 
   return (
-    <span
+    <motion.span
+      key={status}
+      initial={{ opacity: 0, scale: shouldReduceMotion ? 1 : 0.85 }}
+      animate={{ opacity: 1, scale: 1 }}
+      transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium ring-1 ring-inset ${classes}`}
     >
       <Icon className="h-3 w-3" strokeWidth={2.5} />
       {label}
-    </span>
+    </motion.span>
   );
 }
