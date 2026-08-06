@@ -10,5 +10,6 @@ export default async function Home() {
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user.id).single();
-  redirect(profile?.role === "admin" || profile?.role === "manager" ? "/admin" : "/dashboard");
+  const isStaff = profile?.role === "admin" || profile?.role === "manager" || profile?.role === "super_admin";
+  redirect(isStaff ? "/admin" : "/dashboard");
 }
