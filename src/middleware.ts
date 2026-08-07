@@ -4,7 +4,11 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 // Garde d'accès :
 // - non connecté -> redirigé vers /login
 // - client -> ne peut pas accéder à /admin
-// - admin/manager -> accès complet
+// - admin/manager/super_admin -> ne peut pas accéder à /dashboard (l'espace
+//   client suppose un site_id, que le staff n'a jamais ; sans ce garde-fou,
+//   un membre de l'équipe qui clique sur un lien client (ex: l'email de
+//   rappel hebdo, qui pointe vers /dashboard) tombe sur l'écran d'erreur
+//   "compte non rattaché à un site" au lieu d'être renvoyé vers son espace.
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request: { headers: request.headers } });
 
@@ -45,16 +49,24 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  if (user && path.startsWith("/admin")) {
+  if (user && (path.startsWith("/admin") || path.startsWith("/dashboard"))) {
     const { data: profile } = await supabase
       .from("profiles")
       .select("role")
       .eq("id", user.id)
       .single();
 
-    if (!profile || profile.role === "client") {
+    const isStaff = profile?.role === "admin" || profile?.role === "manager" || profile?.role === "super_admin";
+
+    if (path.startsWith("/admin") && (!profile || profile.role === "client")) {
       const url = request.nextUrl.clone();
       url.pathname = "/dashboard";
+      return NextResponse.redirect(url);
+    }
+
+    if (path.startsWith("/dashboard") && isStaff) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/admin";
       return NextResponse.redirect(url);
     }
   }
